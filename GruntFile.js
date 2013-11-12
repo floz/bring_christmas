@@ -56,17 +56,18 @@ module.exports = function ( grunt ) {
             browser_sync: {
                 files: {
                     src: [ 
-                        "deploy/css/**/*.css"
-                    ,   "deploy/js/**/*.js" 
-                    ,   "deploy/img/*.jpg"
-                    ,   "deploy/img/*.png"
-                    ,   "deploy/*.html"
+                        "deploy/css/**/*.css",
+                        "deploy/js/**/*.js",
+                        "deploy/img/*.jpg",
+                        "deploy/img/*.png",
+                        "deploy/*.html"
                     ]
                 },
                 options: {
                     server: {
                         baseDir: "deploy"
-                    }
+                    },
+                    watchTask: true
                 }
             },
 
