@@ -48,6 +48,7 @@ class EngineSingleton
             @scene.add pointLight
 
         update: ->
+            @controls.update()
             @renderer.render @scene, @camera
 
     instance = null

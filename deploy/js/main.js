@@ -97,6 +97,7 @@ EngineSingleton = (function() {
     };
 
     EngineInstance.prototype.update = function() {
+      this.controls.update();
       return this.renderer.render(this.scene, this.camera);
     };
 
