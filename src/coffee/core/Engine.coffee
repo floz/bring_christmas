@@ -3,6 +3,7 @@ class EngineSingleton
     class EngineInstance
 
         _container: null
+        _stats: null
 
         renderer: null
         camera: null
@@ -45,7 +46,7 @@ class EngineSingleton
             @scene.add directionalLight
 
             pointLight = new THREE.PointLight( 0xffffff )
-            @scene.add pointLight
+            @scene.add pointLight        
 
         update: ->
             @controls.update()

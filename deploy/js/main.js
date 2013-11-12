@@ -53,6 +53,8 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype._container = null;
 
+    EngineInstance.prototype._stats = null;
+
     EngineInstance.prototype.renderer = null;
 
     EngineInstance.prototype.camera = null;
@@ -186,6 +188,8 @@ UpdateManagerSingleton = (function() {
   UpdateManagerInstance = (function() {
     UpdateManagerInstance.prototype._list = null;
 
+    UpdateManagerInstance.prototype._stats = null;
+
     UpdateManagerInstance.prototype._rafId = -1;
 
     function UpdateManagerInstance() {
@@ -193,18 +197,32 @@ UpdateManagerSingleton = (function() {
       this._list = [];
     }
 
+    UpdateManagerInstance.prototype.enableDebugMode = function() {
+      this._stats = new Stats();
+      this._stats.domElement.style.position = "absolute";
+      this._stats.domElement.style.left = "0";
+      this._stats.domElement.style.top = "0";
+      return document.body.appendChild(this._stats.domElement);
+    };
+
     UpdateManagerInstance.prototype.start = function() {
       return this._rafId = requestAnimationFrame(this.update);
     };
 
     UpdateManagerInstance.prototype.update = function() {
       var item, _i, _len, _ref;
+      if (this._stats) {
+        this._stats.begin();
+      }
       _ref = this._list;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         item = _ref[_i];
         item.update();
       }
-      return this._rafId = requestAnimationFrame(this.update);
+      this._rafId = requestAnimationFrame(this.update);
+      if (this._stats) {
+        return this._stats.end();
+      }
     };
 
     UpdateManagerInstance.prototype.stop = function() {
@@ -246,6 +264,7 @@ Main = (function() {
   function Main() {
     engine.init(document.getElementById("scene"));
     engine.scene.add(new Axis(1000));
+    updateManager.enableDebugMode();
     updateManager.start();
   }
 
