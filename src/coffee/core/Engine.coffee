@@ -14,6 +14,7 @@ class EngineSingleton
             @renderer = new THREE.WebGLRenderer alpha: false
             @renderer.setClearColor 0x222222, 1
             @renderer.setSize stage.size.w, stage.size.h
+            console.log stage.size.w, stage.size.h
 
             @_container = container
             @_container.appendChild @renderer.domElement

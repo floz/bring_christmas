@@ -41,6 +41,79 @@ Axis = (function(_super) {
 
 })(THREE.Object3D);
 
+var Floor,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Floor = (function(_super) {
+  __extends(Floor, _super);
+
+  Floor.prototype._geometry = null;
+
+  Floor.prototype._texture = null;
+
+  function Floor() {
+    this._geometry = new THREE.PlaneGeometry(1000, 1000, 4, 4);
+    this._texture = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      wireframe: true
+    });
+    THREE.Mesh.call(this, this._geometry, this._texture);
+    this.rotation.x = Math.PI * .5;
+  }
+
+  return Floor;
+
+})(THREE.Mesh);
+
+var GrassBlade,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+GrassBlade = (function(_super) {
+  __extends(GrassBlade, _super);
+
+  GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(10, 50, 1, 1);
+
+  GrassBlade.prototype._geometry = null;
+
+  GrassBlade.prototype._texture = null;
+
+  function GrassBlade() {
+    this._geometry = GrassBlade._SHARED_GEOMETRY;
+    this._texture = new THREE.MeshLamberMaterial({
+      color: 0xff00ff
+    });
+    THREE.Mesh.call(this, this._geometry, this._texture);
+  }
+
+  return GrassBlade;
+
+})(THREE.Mesh);
+
+var World,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+World = (function(_super) {
+  __extends(World, _super);
+
+  World.prototype._floor = null;
+
+  function World() {
+    THREE.Object3D.call(this);
+    this._init();
+  }
+
+  World.prototype._init = function() {
+    this._floor = new Floor();
+    return this.add(this._floor);
+  };
+
+  return World;
+
+})(THREE.Object3D);
+
 var EngineSingleton, engine;
 
 EngineSingleton = (function() {
@@ -69,6 +142,7 @@ EngineSingleton = (function() {
       });
       this.renderer.setClearColor(0x222222, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
+      console.log(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
@@ -202,6 +276,7 @@ UpdateManagerSingleton = (function() {
       this._stats.domElement.style.position = "absolute";
       this._stats.domElement.style.left = "0";
       this._stats.domElement.style.top = "0";
+      this._stats.domElement.style.zIndex = 100;
       return document.body.appendChild(this._stats.domElement);
     };
 
@@ -219,10 +294,10 @@ UpdateManagerSingleton = (function() {
         item = _ref[_i];
         item.update();
       }
-      this._rafId = requestAnimationFrame(this.update);
       if (this._stats) {
-        return this._stats.end();
+        this._stats.end();
       }
+      return this._rafId = requestAnimationFrame(this.update);
     };
 
     UpdateManagerInstance.prototype.stop = function() {
@@ -262,8 +337,11 @@ var Main;
 
 Main = (function() {
   function Main() {
+    var world;
     engine.init(document.getElementById("scene"));
     engine.scene.add(new Axis(1000));
+    world = new World();
+    engine.scene.add(world);
     updateManager.enableDebugMode();
     updateManager.start();
   }

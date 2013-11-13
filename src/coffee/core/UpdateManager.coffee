@@ -15,15 +15,21 @@ class UpdateManagerSingleton
             @_stats.domElement.style.position = "absolute"
             @_stats.domElement.style.left = "0"
             @_stats.domElement.style.top = "0"
+            @_stats.domElement.style.zIndex = 100
             document.body.appendChild @_stats.domElement
 
-        start: -> @_rafId = requestAnimationFrame @update
+        start: -> 
+            # setTimeout =>
+            @_rafId = requestAnimationFrame @update
+                # return
+            # , 1000 / 60
 
         update: =>
             @_stats.begin() if @_stats
             item.update() for item in @_list
-            @_rafId = requestAnimationFrame @update
             @_stats.end() if @_stats
+            # @_stats.update if @_stats
+            @_rafId = requestAnimationFrame @update
 
         stop: -> cancelAnimationFrame @_rafId
 
