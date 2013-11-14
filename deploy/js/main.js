@@ -52,8 +52,14 @@ Floor = (function(_super) {
 
   Floor.prototype._texture = null;
 
-  function Floor() {
-    this._geometry = new THREE.PlaneGeometry(1000, 1000, 4, 4);
+  Floor.prototype.w = 0;
+
+  Floor.prototype.h = 0;
+
+  function Floor(w, h) {
+    this.w = w;
+    this.h = h;
+    this._geometry = new THREE.PlaneGeometry(w, h, 4, 4);
     this._texture = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       wireframe: true
@@ -66,6 +72,56 @@ Floor = (function(_super) {
 
 })(THREE.Mesh);
 
+var Grass,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Grass = (function(_super) {
+  __extends(Grass, _super);
+
+  Grass.prototype.w = 0;
+
+  Grass.prototype.h = 0;
+
+  Grass.prototype._blades = null;
+
+  function Grass(w, h) {
+    this.w = w;
+    this.h = h;
+    THREE.Object3D.call(this);
+    this._generateBlades();
+  }
+
+  Grass.prototype._generateBlades = function() {
+    var blade, i, j, px, pz, step, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _results;
+    this._blades = [];
+    step = 100;
+    xMin = -this.w >> 1;
+    xMax = -xMin;
+    zMin = -this.h >> 1;
+    zMax = -zMin;
+    px = xMin;
+    pz = zMin;
+    vx = this.w / step;
+    vz = this.h / step;
+    _results = [];
+    for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
+      for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
+        blade = new GrassBlade(px, 0, pz);
+        this._blades.push(blade);
+        this.add(blade);
+        px += vx;
+      }
+      px = xMin;
+      _results.push(pz += vz);
+    }
+    return _results;
+  };
+
+  return Grass;
+
+})(THREE.Object3D);
+
 var GrassBlade,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -73,23 +129,45 @@ var GrassBlade,
 GrassBlade = (function(_super) {
   __extends(GrassBlade, _super);
 
-  GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(10, 50, 1, 1);
+  GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(2, 50, 1, 1);
 
   GrassBlade.prototype._geometry = null;
 
   GrassBlade.prototype._texture = null;
 
-  function GrassBlade() {
+  function GrassBlade(x, y, z) {
     this._geometry = GrassBlade._SHARED_GEOMETRY;
-    this._texture = new THREE.MeshLamberMaterial({
+    this._texture = new THREE.MeshLambertMaterial({
       color: 0xff00ff
     });
     THREE.Mesh.call(this, this._geometry, this._texture);
+    this.position.set(x, y, z);
   }
 
   return GrassBlade;
 
 })(THREE.Mesh);
+
+var Land,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Land = (function(_super) {
+  __extends(Land, _super);
+
+  Land.prototype._floor = null;
+
+  function Land() {
+    THREE.Object3D.call(this);
+    this._floor = new Floor(1000, 1000);
+    this.add(this._floor);
+    this._grass = new Grass(this._floor.w, this._floor.h);
+    this.add(this._grass);
+  }
+
+  return Land;
+
+})(THREE.Object3D);
 
 var World,
   __hasProp = {}.hasOwnProperty,
@@ -98,7 +176,7 @@ var World,
 World = (function(_super) {
   __extends(World, _super);
 
-  World.prototype._floor = null;
+  World.prototype._land = null;
 
   function World() {
     THREE.Object3D.call(this);
@@ -106,8 +184,8 @@ World = (function(_super) {
   }
 
   World.prototype._init = function() {
-    this._floor = new Floor();
-    return this.add(this._floor);
+    this._land = new Land();
+    return this.add(this._land);
   };
 
   return World;
