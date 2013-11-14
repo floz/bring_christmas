@@ -60,12 +60,11 @@ Floor = (function(_super) {
     this.w = w;
     this.h = h;
     this._geometry = new THREE.PlaneGeometry(w, h, 4, 4);
-    this._texture = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      wireframe: true
+    this._texture = new THREE.MeshLambertMaterial({
+      color: 0xffffff
     });
     THREE.Mesh.call(this, this._geometry, this._texture);
-    this.rotation.x = Math.PI * .5;
+    this.rotation.x = -Math.PI * .5;
   }
 
   return Floor;
@@ -83,6 +82,8 @@ Grass = (function(_super) {
 
   Grass.prototype.h = 0;
 
+  Grass.prototype._cntBlades = null;
+
   Grass.prototype._blades = null;
 
   function Grass(w, h) {
@@ -90,12 +91,13 @@ Grass = (function(_super) {
     this.h = h;
     THREE.Object3D.call(this);
     this._generateBlades();
+    this._createGrass();
   }
 
   Grass.prototype._generateBlades = function() {
-    var blade, i, j, px, pz, step, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _results;
-    this._blades = [];
-    step = 100;
+    var blade, i, j, px, pz, step, vx, vz, xMax, xMin, zMax, zMin, _i, _j;
+    this._blades = new THREE.Geometry();
+    step = 120;
     xMin = -this.w >> 1;
     xMax = -xMin;
     zMin = -this.h >> 1;
@@ -104,18 +106,24 @@ Grass = (function(_super) {
     pz = zMin;
     vx = this.w / step;
     vz = this.h / step;
-    _results = [];
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
         blade = new GrassBlade(px, 0, pz);
-        this._blades.push(blade);
-        this.add(blade);
+        THREE.GeometryUtils.merge(this._blades, blade);
         px += vx;
       }
       px = xMin;
-      _results.push(pz += vz);
+      pz += vz;
     }
-    return _results;
+    return this._blades.computeFaceNormals();
+  };
+
+  Grass.prototype._createGrass = function() {
+    var mesh;
+    mesh = new THREE.Mesh(this._blades, new THREE.MeshLambertMaterial({
+      color: 0xff00ff
+    }));
+    return this.add(mesh);
   };
 
   return Grass;
@@ -129,20 +137,28 @@ var GrassBlade,
 GrassBlade = (function(_super) {
   __extends(GrassBlade, _super);
 
-  GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(2, 50, 1, 1);
+  GrassBlade._SHARED_GEOMETRY = null;
 
-  GrassBlade.prototype._geometry = null;
+  GrassBlade.prototype.geometry = null;
 
-  GrassBlade.prototype._texture = null;
+  GrassBlade.prototype.texture = null;
 
   function GrassBlade(x, y, z) {
-    this._geometry = GrassBlade._SHARED_GEOMETRY;
-    this._texture = new THREE.MeshLambertMaterial({
+    if (!GrassBlade._SHARED_GEOMETRY) {
+      GrassBlade.initGeometry(x, y, z);
+    }
+    this.geometry = GrassBlade._SHARED_GEOMETRY;
+    this.texture = new THREE.MeshLambertMaterial({
       color: 0xff00ff
     });
-    THREE.Mesh.call(this, this._geometry, this._texture);
+    THREE.Mesh.call(this, this.geometry, this.texture);
     this.position.set(x, y, z);
   }
+
+  GrassBlade.initGeometry = function(x, y, z) {
+    GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(2, 50, 1, 1);
+    return GrassBlade._SHARED_GEOMETRY.applyMatrix(new THREE.Matrix4().makeTranslation(0, 25, 0));
+  };
 
   return GrassBlade;
 
@@ -246,7 +262,8 @@ EngineSingleton = (function() {
       directionalLight = new THREE.DirectionalLight(0xffffff);
       directionalLight.position.set(1, 1, 2).normalize();
       this.scene.add(directionalLight);
-      pointLight = new THREE.PointLight(0xffffff);
+      pointLight = new THREE.PointLight(0x0000ff, 1, 1000);
+      pointLight.position.set(0, 50, 0);
       return this.scene.add(pointLight);
     };
 

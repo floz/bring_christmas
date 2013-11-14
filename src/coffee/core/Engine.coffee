@@ -46,8 +46,9 @@ class EngineSingleton
             directionalLight.position.set( 1, 1, 2 ).normalize()
             @scene.add directionalLight
 
-            pointLight = new THREE.PointLight( 0xffffff )
-            @scene.add pointLight        
+            pointLight = new THREE.PointLight( 0x0000ff, 1, 1000 )
+            pointLight.position.set 0, 50, 0
+            @scene.add pointLight
 
         update: ->
             @controls.update()
