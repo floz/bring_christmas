@@ -41,6 +41,23 @@ Axis = (function(_super) {
 
 })(THREE.Object3D);
 
+var WindShader;
+
+WindShader = (function() {
+  function WindShader() {}
+
+  WindShader.prototype.attributes = {};
+
+  WindShader.prototype.uniforms = {};
+
+  WindShader.prototype.vertexShader = ["void main() {", "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );", "}"].join("\n");
+
+  WindShader.prototype.fragmentShader = ["void main() {", "gl_FragColor = vec4( 0.031, 0.28, 0.13, 0.0 );", "}"].join("\n");
+
+  return WindShader;
+
+})();
+
 var Floor,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -61,7 +78,7 @@ Floor = (function(_super) {
     this.h = h;
     this._geometry = new THREE.PlaneGeometry(w, h, 4, 4);
     this._texture = new THREE.MeshLambertMaterial({
-      color: 0xffffff
+      color: 0x084820
     });
     THREE.Mesh.call(this, this._geometry, this._texture);
     this.rotation.x = -Math.PI * .5;
@@ -119,11 +136,25 @@ Grass = (function(_super) {
   };
 
   Grass.prototype._createGrass = function() {
-    var mesh;
-    mesh = new THREE.Mesh(this._blades, new THREE.MeshLambertMaterial({
-      color: 0xff00ff
-    }));
+    var materialA, materialB, mesh;
+    materialA = new THREE.MeshLambertMaterial({
+      color: 0x084820
+    });
+    materialA.side = THREE.DoubleSide;
+    materialB = this._getWindMaterial();
+    mesh = THREE.SceneUtils.createMultiMaterialObject(this._blades, [materialB, materialA]);
     return this.add(mesh);
+  };
+
+  Grass.prototype._getWindMaterial = function() {
+    var material, params, shader;
+    shader = new WindShader();
+    params = {
+      fragmentShader: shader.fragmentShader,
+      vertexShader: shader.vertexShader,
+      uniforms: shader.uniforms
+    };
+    return material = new THREE.ShaderMaterial(params);
   };
 
   return Grass;
@@ -149,10 +180,10 @@ GrassBlade = (function(_super) {
     }
     this.geometry = GrassBlade._SHARED_GEOMETRY;
     this.texture = new THREE.MeshLambertMaterial({
-      color: 0xff00ff
+      color: 0xfff000
     });
     THREE.Mesh.call(this, this.geometry, this.texture);
-    this.position.set(x, y, z);
+    this.position.set(x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5);
   }
 
   GrassBlade.initGeometry = function(x, y, z) {
@@ -179,6 +210,7 @@ Land = (function(_super) {
     this.add(this._floor);
     this._grass = new Grass(this._floor.w, this._floor.h);
     this.add(this._grass);
+    this.position.z = -500;
   }
 
   return Land;
@@ -236,39 +268,26 @@ EngineSingleton = (function() {
       });
       this.renderer.setClearColor(0x222222, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
-      console.log(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(200, 200, 500);
-      this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-      this.controls = new THREE.TrackballControls(this.camera);
-      this.controls.rotateSpeed = 1;
-      this.controls.zoomSpeed = .2;
-      this.controls.panSpeed = .8;
-      this.controls.noZoom = false;
-      this.controls.noPan = false;
-      this.controls.staticMoving = true;
-      this.controls.dynamicDampingFactor = .3;
+      this.camera.position.set(100, 200, 100);
+      this.camera.lookAt(new THREE.Vector3(0, 100, -200));
       this.scene = new THREE.Scene();
       this._initLights();
       return updateManager.register(this);
     };
 
     EngineInstance.prototype._initLights = function() {
-      var ambient, directionalLight, pointLight;
+      var ambient, pointLight;
       ambient = new THREE.AmbientLight(0x101010);
       this.scene.add(ambient);
-      directionalLight = new THREE.DirectionalLight(0xffffff);
-      directionalLight.position.set(1, 1, 2).normalize();
-      this.scene.add(directionalLight);
-      pointLight = new THREE.PointLight(0x0000ff, 1, 1000);
-      pointLight.position.set(0, 50, 0);
+      pointLight = new THREE.PointLight(0xe9ff9b, 2, 1000);
+      pointLight.position.set(50, 50, 50);
       return this.scene.add(pointLight);
     };
 
     EngineInstance.prototype.update = function() {
-      this.controls.update();
       return this.renderer.render(this.scene, this.camera);
     };
 

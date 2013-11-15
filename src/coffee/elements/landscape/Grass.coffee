@@ -37,5 +37,23 @@ class Grass extends THREE.Object3D
         @_blades.computeFaceNormals()
 
     _createGrass: ->
-        mesh = new THREE.Mesh @_blades, new THREE.MeshLambertMaterial color: 0xff00ff
+        materialA = new THREE.MeshLambertMaterial color: 0x084820
+        materialA.side = THREE.DoubleSide
+        
+        materialB = @_getWindMaterial()
+
+        mesh = THREE.SceneUtils.createMultiMaterialObject @_blades, [ materialB, materialA ]
         @.add mesh
+
+    _getWindMaterial: ->
+        shader = new WindShader()
+
+        params =
+            fragmentShader: shader.fragmentShader
+            vertexShader: shader.vertexShader
+            uniforms: shader.uniforms
+            # lights: true
+
+        material = new THREE.ShaderMaterial params
+
+
