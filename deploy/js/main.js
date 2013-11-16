@@ -46,17 +46,98 @@ var WindShader;
 WindShader = (function() {
   function WindShader() {}
 
-  WindShader.prototype.attributes = {};
+  WindShader.prototype.uniforms = THREE.UniformsUtils.merge([
+    THREE.UniformsLib["common"], THREE.UniformsLib["fog"], THREE.UniformsLib["lights"], THREE.UniformsLib["shadowmap"], {
+      "ambient": {
+        type: "c",
+        value: new THREE.Color(0xffffff)
+      },
+      "emissive": {
+        type: "c",
+        value: new THREE.Color(0x000000)
+      },
+      "wrapRGB": {
+        type: "v3",
+        value: new THREE.Vector3(1, 1, 1)
+      }
+    }
+  ]);
 
-  WindShader.prototype.uniforms = {};
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "varying vec3 vLightFront;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( position, 1.0 );", "#endif", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
-  WindShader.prototype.vertexShader = ["void main() {", "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );", "}"].join("\n");
-
-  WindShader.prototype.fragmentShader = ["void main() {", "gl_FragColor = vec4( 0.031, 0.28, 0.13, 0.0 );", "}"].join("\n");
+  WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vec3 ( 1.0 ), opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
   return WindShader;
 
 })();
+
+var NoiseShader;
+
+NoiseShader = (function() {
+  function NoiseShader() {}
+
+  NoiseShader.prototype.uniforms = {};
+
+  NoiseShader.prototype.vertexShader = ["void main() {", "gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);", "}"].join("\n");
+
+  NoiseShader.prototype.fragmentShader = ["void main() {", "gl_FragColor = vec4( 1.0, 0.0, 1.0, 1.0 );", "}"].join("\n");
+
+  return NoiseShader;
+
+})();
+
+var PlaneNoise,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+PlaneNoise = (function(_super) {
+  __extends(PlaneNoise, _super);
+
+  PlaneNoise.prototype._material = null;
+
+  function PlaneNoise() {
+    var geometry;
+    geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+    this._material = new this._getNoiseMaterial();
+    THREE.Mesh.call(this, geometry, this._getNoiseMaterial());
+  }
+
+  PlaneNoise.prototype._getNoiseMaterial = function() {
+    var material, params, shader, uniforms;
+    shader = new NoiseShader();
+    uniforms = shader.uniforms;
+    params = {
+      fragmentShader: shader.fragmentShader,
+      vertexShader: shader.vertexShader,
+      uniforms: uniforms
+    };
+    return material = new THREE.ShaderMaterial(params);
+  };
+
+  PlaneNoise.prototype.update = function() {};
+
+  return PlaneNoise;
+
+})(THREE.Mesh);
+
+var WorldNoise,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+WorldNoise = (function(_super) {
+  __extends(WorldNoise, _super);
+
+  WorldNoise.prototype._planeNoise = null;
+
+  function WorldNoise() {
+    THREE.Object3D.call(this);
+    this._planeNoise = new PlaneNoise();
+    this.add(this._planeNoise);
+  }
+
+  return WorldNoise;
+
+})(THREE.Object3D);
 
 var Floor,
   __hasProp = {}.hasOwnProperty,
@@ -136,24 +217,23 @@ Grass = (function(_super) {
   };
 
   Grass.prototype._createGrass = function() {
-    var materialA, materialB, mesh;
-    materialA = new THREE.MeshLambertMaterial({
-      color: 0x084820
-    });
-    materialA.side = THREE.DoubleSide;
-    materialB = this._getWindMaterial();
-    mesh = THREE.SceneUtils.createMultiMaterialObject(this._blades, [materialB, materialA]);
+    var mesh;
+    mesh = new THREE.Mesh(this._blades, this._getWindMaterial());
     return this.add(mesh);
   };
 
   Grass.prototype._getWindMaterial = function() {
-    var material, params, shader;
+    var material, params, shader, uniforms;
     shader = new WindShader();
+    uniforms = shader.uniforms;
     params = {
       fragmentShader: shader.fragmentShader,
       vertexShader: shader.vertexShader,
-      uniforms: shader.uniforms
+      uniforms: uniforms,
+      lights: true
     };
+    uniforms["diffuse"].value = new THREE.Color(0x084820);
+    uniforms["ambient"].value = new THREE.Color(0xffea00);
     return material = new THREE.ShaderMaterial(params);
   };
 
@@ -271,10 +351,8 @@ EngineSingleton = (function() {
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(100, 200, 100);
-      this.camera.lookAt(new THREE.Vector3(0, 100, -200));
+      this.camera.position.set(0, 0, 400);
       this.scene = new THREE.Scene();
-      this._initLights();
       return updateManager.register(this);
     };
 
@@ -454,7 +532,7 @@ Main = (function() {
     var world;
     engine.init(document.getElementById("scene"));
     engine.scene.add(new Axis(1000));
-    world = new World();
+    world = new WorldNoise();
     engine.scene.add(world);
     updateManager.enableDebugMode();
     updateManager.start();

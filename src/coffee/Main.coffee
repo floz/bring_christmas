@@ -4,12 +4,10 @@ class Main
         engine.init document.getElementById "scene"
         engine.scene.add new Axis 1000
 
-        world = new World()
+        world = new WorldNoise()
         engine.scene.add world
 
         updateManager.enableDebugMode()
         updateManager.start()
         
-
-
 $( document ).ready -> new Main()

@@ -19,8 +19,9 @@ class EngineSingleton
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
-            @camera.position.set 100, 200, 100
-            @camera.lookAt new THREE.Vector3 0, 100, -200
+            # @camera.position.set 100, 200, 100
+            # @camera.lookAt new THREE.Vector3 0, 100, -200
+            @camera.position.set 0, 0, 400
 
             # @controls = new THREE.TrackballControls @camera
             # @controls.rotateSpeed = 1
@@ -33,7 +34,7 @@ class EngineSingleton
 
             @scene = new THREE.Scene()
 
-            @_initLights()
+            # @_initLights()
 
             updateManager.register @
 
