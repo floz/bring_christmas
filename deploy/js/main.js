@@ -76,11 +76,20 @@ var NoiseShader;
 NoiseShader = (function() {
   function NoiseShader() {}
 
-  NoiseShader.prototype.uniforms = {};
+  NoiseShader.prototype.uniforms = {
+    "uText": {
+      type: "t",
+      value: null
+    },
+    "uTime": {
+      type: "f",
+      value: 0.0
+    }
+  };
 
-  NoiseShader.prototype.vertexShader = ["void main() {", "gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);", "}"].join("\n");
+  NoiseShader.prototype.vertexShader = ["varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vUv = uv;", "vPos = position;", "gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);", "}"].join("\n");
 
-  NoiseShader.prototype.fragmentShader = ["void main() {", "gl_FragColor = vec4( 1.0, 0.0, 1.0, 1.0 );", "}"].join("\n");
+  NoiseShader.prototype.fragmentShader = ["uniform sampler2D uText;", "uniform float uTime;", "varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vec2 newUv = vec2( vUv );", "newUv.x = ( newUv.x * 0.5 ) + uTime * 0.0025;", "vec4 texture = texture2D( uText, newUv );", "gl_FragColor = vec4( texture.rgb, 1.0 );", "}"].join("\n");
 
   return NoiseShader;
 
@@ -95,26 +104,44 @@ PlaneNoise = (function(_super) {
 
   PlaneNoise.prototype._material = null;
 
+  PlaneNoise.prototype._texture = null;
+
+  PlaneNoise.prototype._uniformsNoise = null;
+
+  PlaneNoise.prototype._sign = 1;
+
+  PlaneNoise.prototype._add = 0;
+
   function PlaneNoise() {
     var geometry;
+    this._texture = document.getElementById("texture-noise");
     geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-    this._material = new this._getNoiseMaterial();
-    THREE.Mesh.call(this, geometry, this._getNoiseMaterial());
+    this._material = this._getNoiseMaterial();
+    THREE.Mesh.call(this, geometry, this._material);
   }
 
   PlaneNoise.prototype._getNoiseMaterial = function() {
-    var material, params, shader, uniforms;
+    var material, params, shader;
     shader = new NoiseShader();
-    uniforms = shader.uniforms;
+    this._uniformsNoise = shader.uniforms;
     params = {
       fragmentShader: shader.fragmentShader,
       vertexShader: shader.vertexShader,
-      uniforms: uniforms
+      uniforms: this._uniformsNoise
     };
+    this._uniformsNoise.uText.value = THREE.ImageUtils.loadTexture(this._texture.src);
     return material = new THREE.ShaderMaterial(params);
   };
 
-  PlaneNoise.prototype.update = function() {};
+  PlaneNoise.prototype.update = function() {
+    if (this._add > 300) {
+      this._sign = -1;
+    } else if (this._add < 0) {
+      this._sign = 1;
+    }
+    this._add += 1 * this._sign;
+    return this._uniformsNoise.uTime.value = this._add;
+  };
 
   return PlaneNoise;
 
@@ -133,7 +160,12 @@ WorldNoise = (function(_super) {
     THREE.Object3D.call(this);
     this._planeNoise = new PlaneNoise();
     this.add(this._planeNoise);
+    updateManager.register(this);
   }
+
+  WorldNoise.prototype.update = function() {
+    return this._planeNoise.update();
+  };
 
   return WorldNoise;
 
@@ -542,6 +574,4 @@ Main = (function() {
 
 })();
 
-$(document).ready(function() {
-  return new Main();
-});
+new Main();

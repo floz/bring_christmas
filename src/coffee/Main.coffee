@@ -10,4 +10,4 @@ class Main
         updateManager.enableDebugMode()
         updateManager.start()
         
-$( document ).ready -> new Main()
+new Main()

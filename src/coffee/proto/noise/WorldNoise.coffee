@@ -8,5 +8,9 @@ class WorldNoise extends THREE.Object3D
 		@_planeNoise = new PlaneNoise()
 		@.add @_planeNoise
 
+		updateManager.register @
+
+	update: ->
+		@_planeNoise.update()
 	
 		

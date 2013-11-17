@@ -1,23 +1,39 @@
 class PlaneNoise extends THREE.Mesh
 
 	_material: null
+	_texture: null
+	_uniformsNoise: null
+
+	_sign: 1
+	_add: 0
 
 	constructor: ->
-		geometry = new THREE.PlaneGeometry 100, 100, 1, 1
-		@_material = new @_getNoiseMaterial()
+		@_texture = document.getElementById "texture-noise"
 
-		THREE.Mesh.call @, geometry, @_getNoiseMaterial() #new THREE.MeshBasicMaterial color: 0xff0000
+		geometry = new THREE.PlaneGeometry 100, 100, 1, 1
+		@_material = @_getNoiseMaterial()
+
+		THREE.Mesh.call @, geometry, @_material #new THREE.MeshBasicMaterial color: 0xff0000
 
 	_getNoiseMaterial: ->
 		shader = new NoiseShader()
-		uniforms = shader.uniforms
+		@_uniformsNoise = shader.uniforms
 
 		params =
 			fragmentShader: shader.fragmentShader
 			vertexShader: shader.vertexShader
-			uniforms: uniforms
+			uniforms: @_uniformsNoise
+
+		@_uniformsNoise.uText.value = THREE.ImageUtils.loadTexture @_texture.src
 
 		material = new THREE.ShaderMaterial params
 
 	update: ->
-		# todo
+		if @_add > 300
+			@_sign = -1 
+		else if @_add < 0 
+			@_sign = 1
+		@_add += 1 * @_sign
+		
+		@_uniformsNoise.uTime.value = @_add
+
