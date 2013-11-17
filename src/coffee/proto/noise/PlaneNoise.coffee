@@ -35,5 +35,5 @@ class PlaneNoise extends THREE.Mesh
 			@_sign = 1
 		@_add += 1 * @_sign
 		
-		@_uniformsNoise.uTime.value = @_add
+		@_uniformsNoise.uOffsetX.value = @_add
 

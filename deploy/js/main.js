@@ -81,15 +81,15 @@ NoiseShader = (function() {
       type: "t",
       value: null
     },
-    "uTime": {
+    "uOffsetX": {
       type: "f",
       value: 0.0
     }
   };
 
-  NoiseShader.prototype.vertexShader = ["varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vUv = uv;", "vPos = position;", "gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);", "}"].join("\n");
+  NoiseShader.prototype.vertexShader = ["uniform float uOffsetX;", "varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vUv = vec2( uv.x * 0.5 + uOffsetX * 0.0025, uv.y );", "vPos = position;", "gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);", "}"].join("\n");
 
-  NoiseShader.prototype.fragmentShader = ["uniform sampler2D uText;", "uniform float uTime;", "varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vec2 newUv = vec2( vUv );", "newUv.x = ( newUv.x * 0.5 ) + uTime * 0.0025;", "vec4 texture = texture2D( uText, newUv );", "gl_FragColor = vec4( texture.rgb, 1.0 );", "}"].join("\n");
+  NoiseShader.prototype.fragmentShader = ["uniform sampler2D uText;", "varying vec2 vUv;", "varying vec3 vPos;", "void main() {", "vec4 texture = texture2D( uText, vUv );", "gl_FragColor = vec4( texture.rgb, 1.0 );", "}"].join("\n");
 
   return NoiseShader;
 
@@ -140,7 +140,7 @@ PlaneNoise = (function(_super) {
       this._sign = 1;
     }
     this._add += 1 * this._sign;
-    return this._uniformsNoise.uTime.value = this._add;
+    return this._uniformsNoise.uOffsetX.value = this._add;
   };
 
   return PlaneNoise;
