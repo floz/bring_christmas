@@ -34,7 +34,7 @@ class EngineSingleton
 
             @scene = new THREE.Scene()
 
-            # @_initLights()
+            @_initLights()
 
             updateManager.register @
 

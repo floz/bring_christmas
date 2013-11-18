@@ -1,7 +1,7 @@
 class PlaneNoise extends THREE.Mesh
 
-	_material: null
 	_texture: null
+	_material: null
 	_uniformsNoise: null
 
 	_sign: 1

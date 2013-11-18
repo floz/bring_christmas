@@ -71,6 +71,56 @@ WindShader = (function() {
 
 })();
 
+var DisplacementShader;
+
+DisplacementShader = (function() {
+  function DisplacementShader() {}
+
+  DisplacementShader.prototype.uniforms = THREE.UniformsUtils.merge([
+    THREE.UniformsLib["common"], THREE.UniformsLib["fog"], THREE.UniformsLib["lights"], THREE.UniformsLib["shadowmap"], {
+      "ambient": {
+        type: "c",
+        value: new THREE.Color(0xffffff)
+      },
+      "emissive": {
+        type: "c",
+        value: new THREE.Color(0x000000)
+      },
+      "wrapRGB": {
+        type: "v3",
+        value: new THREE.Vector3(1, 1, 1)
+      },
+      "uWindMapForce": {
+        type: "t",
+        value: null
+      },
+      "uWindScale": {
+        type: "f",
+        value: 1.0
+      },
+      "uWindMin": {
+        type: "v2",
+        value: null
+      },
+      "uWindSize": {
+        type: "v2",
+        value: null
+      },
+      "uWindDirection": {
+        type: "v3",
+        value: null
+      }
+    }
+  ]);
+
+  DisplacementShader.prototype.vertexShader = ["#define LAMBERT", "varying vec3 vLightFront;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "vec2 totPos = wpos.xz;", "vec2 windUV = totPos / windSize;", "mvPosition = modelViewMatrix * vec4( position, 1.0 );", "#endif", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+
+  DisplacementShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vec3 ( 1.0 ), opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
+
+  return DisplacementShader;
+
+})();
+
 var NoiseShader;
 
 NoiseShader = (function() {
@@ -102,9 +152,9 @@ var PlaneNoise,
 PlaneNoise = (function(_super) {
   __extends(PlaneNoise, _super);
 
-  PlaneNoise.prototype._material = null;
-
   PlaneNoise.prototype._texture = null;
+
+  PlaneNoise.prototype._material = null;
 
   PlaneNoise.prototype._uniformsNoise = null;
 
@@ -147,6 +197,53 @@ PlaneNoise = (function(_super) {
 
 })(THREE.Mesh);
 
+var PlaneNoiseAffected,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+PlaneNoiseAffected = (function(_super) {
+  __extends(PlaneNoiseAffected, _super);
+
+  PlaneNoiseAffected.prototype._texture = null;
+
+  PlaneNoiseAffected.prototype._material = null;
+
+  PlaneNoiseAffected.prototype._geometry = null;
+
+  PlaneNoiseAffected.prototype._uniforms = null;
+
+  function PlaneNoiseAffected() {
+    this._texture = document.getElementById("texture-noise");
+    this._geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+    this._geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 50, 0));
+    this._material = this._getDisplacementMaterial();
+    THREE.Mesh.call(this, this._geometry, this._material);
+  }
+
+  PlaneNoiseAffected.prototype._getDisplacementMaterial = function() {
+    var material, params, shader;
+    shader = new DisplacementShader();
+    this._uniforms = shader.uniforms;
+    params = {
+      fragmentShader: shader.fragmentShader,
+      vertexShader: shader.vertexShader,
+      uniforms: this._uniforms,
+      lights: true
+    };
+    this._uniforms.diffuse.value = new THREE.Color(0x084820);
+    this._uniforms.ambient.value = new THREE.Color(0xffea00);
+    this._uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture(this._texture);
+    this._uniforms.uWindScale.value = 1;
+    this._uniforms.uWindMin.value = new THREE.Vector2(-30, -30);
+    this._uniforms.uWindSize.value = new THREE.Vector2(60, 60);
+    this._uniforms.uWindDirection.value = new THREE.Vector3(10, 0, 10);
+    return material = new THREE.ShaderMaterial(params);
+  };
+
+  return PlaneNoiseAffected;
+
+})(THREE.Mesh);
+
 var WorldNoise,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -159,7 +256,11 @@ WorldNoise = (function(_super) {
   function WorldNoise() {
     THREE.Object3D.call(this);
     this._planeNoise = new PlaneNoise();
+    this._planeNoise.position.x = -100;
     this.add(this._planeNoise);
+    this._planeNoiseAffected = new PlaneNoiseAffected();
+    this._planeNoiseAffected.position.x = 100;
+    this.add(this._planeNoiseAffected);
     updateManager.register(this);
   }
 
@@ -385,6 +486,7 @@ EngineSingleton = (function() {
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
       this.camera.position.set(0, 0, 400);
       this.scene = new THREE.Scene();
+      this._initLights();
       return updateManager.register(this);
     };
 

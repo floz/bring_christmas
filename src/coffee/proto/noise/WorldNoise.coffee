@@ -1,16 +1,21 @@
 class WorldNoise extends THREE.Object3D
 
-	_planeNoise: null
+    _planeNoise: null
 
-	constructor: ->
-		THREE.Object3D.call @
+    constructor: ->
+        THREE.Object3D.call @
 
-		@_planeNoise = new PlaneNoise()
-		@.add @_planeNoise
+        @_planeNoise = new PlaneNoise()
+        @_planeNoise.position.x = -100
+        @.add @_planeNoise
 
-		updateManager.register @
+        @_planeNoiseAffected = new PlaneNoiseAffected()
+        @_planeNoiseAffected.position.x = 100
+        @.add @_planeNoiseAffected
 
-	update: ->
-		@_planeNoise.update()
-	
-		
+        updateManager.register @
+
+    update: ->
+        @_planeNoise.update()
+    
+        
