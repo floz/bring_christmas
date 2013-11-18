@@ -19,18 +19,9 @@ class EngineSingleton
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
-            # @camera.position.set 100, 200, 100
-            # @camera.lookAt new THREE.Vector3 0, 100, -200
-            @camera.position.set 0, 0, 400
-
-            # @controls = new THREE.TrackballControls @camera
-            # @controls.rotateSpeed = 1
-            # @controls.zoomSpeed = .2
-            # @controls.panSpeed = .8
-            # @controls.noZoom = false
-            # @controls.noPan = false
-            # @controls.staticMoving = true
-            # @controls.dynamicDampingFactor = .3
+            @camera.position.set 0, 200, 100
+            @camera.lookAt new THREE.Vector3 0, 100, -200
+            # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
 
@@ -51,7 +42,6 @@ class EngineSingleton
             @scene.add pointLight
 
         update: ->
-            # @controls.update()
             @renderer.render @scene, @camera
 
     instance = null

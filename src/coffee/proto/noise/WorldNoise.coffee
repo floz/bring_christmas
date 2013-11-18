@@ -17,5 +17,6 @@ class WorldNoise extends THREE.Object3D
 
     update: ->
         @_planeNoise.update()
+        @_planeNoiseAffected.update()
     
         

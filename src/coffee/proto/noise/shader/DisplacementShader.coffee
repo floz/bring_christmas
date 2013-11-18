@@ -12,6 +12,7 @@ class DisplacementShader
                 "emissive" : { type: "c", value: new THREE.Color( 0x000000 ) }
                 "wrapRGB"  : { type: "v3", value: new THREE.Vector3( 1, 1, 1 ) }
 
+                "uOffsetX" : { type: "f", value: 0.0 }
                 "uWindMapForce": { type: "t", value: null }
                 "uWindScale": { type: "f", value: 1.0 }
                 "uWindMin": { type: "v2", value: null }
@@ -25,6 +26,7 @@ class DisplacementShader
 
             "#define LAMBERT"
 
+            "uniform float uOffsetX;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
             "uniform vec2 uWindMin;"
@@ -81,10 +83,26 @@ class DisplacementShader
                 "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )"
 
                     "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
-                    "vec2 totPos = wpos.xz;"
-                    "vec2 windUV = totPos / windSize;"
+                    "wpos.z = -wpos.z;"
+                    "vec2 totPos = wpos.xz - uWindMin;"
+                    "vec2 windUV = totPos / uWindSize;"
+                    "windUV.x = windUV.x * 0.5 + uOffsetX / 3.0 * 0.0025;"
 
-                    "mvPosition = modelViewMatrix * vec4( position, 1.0 );"
+                    # "windUV = vec2( uv.x * 0.5 + uOffsetX * 0.0025, uv.y );"
+                    "vWindForce = texture2D( uWindMapForce, windUV ).x;"
+
+                    "float windFactor = 0.0;"
+                    "if ( position.y != 0.0 )"
+                        "windFactor = 1.0;"
+                    "float windMod = ( 1.0 - vWindForce ) * windFactor;"
+
+                    "vec4 pos = vec4( position, 1.0 );"
+                    "pos.x += windMod * uWindDirection.x;"
+                    "pos.y += windMod * uWindDirection.y;"
+                    "pos.z += windMod * uWindDirection.z;"
+
+                    # "mvPosition = modelViewMatrix * vec4( position, 1.0 );"
+                    "mvPosition = modelViewMatrix * pos;"
 
                 "#endif"
 

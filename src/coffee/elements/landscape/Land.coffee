@@ -12,3 +12,8 @@ class Land extends THREE.Object3D
         @.add @_grass
 
         @.position.z = -500
+
+        updateManager.register @
+
+    update: ->
+        @_grass.update()

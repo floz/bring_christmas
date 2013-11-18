@@ -15,5 +15,5 @@ class GrassBlade extends THREE.Mesh
         @.position.set x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5
 
     @initGeometry = ( x, y, z )->
-        GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry 2, 50, 1, 1
+        GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry 1 + Math.random() * 1, 50, 1, 1
         GrassBlade._SHARED_GEOMETRY.applyMatrix new THREE.Matrix4().makeTranslation 0, 25, 0 

@@ -4,7 +4,7 @@ class Main
         engine.init document.getElementById "scene"
         engine.scene.add new Axis 1000
 
-        world = new WorldNoise()
+        world = new World()
         engine.scene.add world
 
         updateManager.enableDebugMode()
