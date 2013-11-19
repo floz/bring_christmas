@@ -46,6 +46,13 @@ var WindShader;
 WindShader = (function() {
   function WindShader() {}
 
+  WindShader.prototype.attributes = {
+    aColor: {
+      type: "c",
+      value: null
+    }
+  };
+
   WindShader.prototype.uniforms = THREE.UniformsUtils.merge([
     THREE.UniformsLib["common"], THREE.UniformsLib["fog"], THREE.UniformsLib["lights"], THREE.UniformsLib["shadowmap"], {
       "ambient": {
@@ -87,9 +94,9 @@ WindShader = (function() {
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "uniform float uOffsetX;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "wpos.z = -wpos.z;", "vec2 totPos = wpos.xz - uWindMin;", "vec2 windUV = totPos / 1000.0;", "windUV.x = windUV.x + uOffsetX * 0.0025;", "vWindForce = texture2D( uWindMapForce, windUV ).x;", "float windFactor = 0.0;", "if ( position.y != 0.0 )", "windFactor = 1.0;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x;", "pos.y += windMod * uWindDirection.y;", "pos.z += windMod * uWindDirection.z;", "mvPosition = modelViewMatrix * pos;", "#endif", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "uniform float uOffsetX;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "wpos.z = -wpos.z;", "vec2 totPos = wpos.xz - uWindMin;", "vec2 windUV = totPos / 1000.0;", "windUV.x = windUV.x + uOffsetX * 0.0025;", "vWindForce = texture2D( uWindMapForce, windUV ).x;", "float windFactor = 0.0;", "if ( position.y != 0.0 )", "windFactor = 1.0;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x;", "pos.y += windMod * uWindDirection.y;", "pos.z += windMod * uWindDirection.z;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
-  WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vec3 ( 1.0 ), opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
+  WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vColor, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
   return WindShader;
 
@@ -344,8 +351,9 @@ Floor = (function(_super) {
     this.w = w;
     this.h = h;
     this._geometry = new THREE.PlaneGeometry(w, h, 4, 4);
-    this._texture = new THREE.MeshLambertMaterial({
-      color: 0x084820
+    this._texture = new THREE.MeshBasicMaterial({
+      color: 0x3d5d0a,
+      lights: false
     });
     THREE.Mesh.call(this, this._geometry, this._texture);
     this.rotation.x = -Math.PI * .5;
@@ -374,6 +382,8 @@ Grass = (function(_super) {
 
   Grass.prototype._uniforms = null;
 
+  Grass.prototype._colors = null;
+
   Grass.prototype._sign = 1;
 
   Grass.prototype._add = 0;
@@ -388,9 +398,14 @@ Grass = (function(_super) {
   }
 
   Grass.prototype._generateBlades = function() {
-    var blade, i, j, px, pz, step, vx, vz, xMax, xMin, zMax, zMin, _i, _j;
+    var availableColors, baseColor, blade, geo, i, idx, j, lengthAvailableColors, px, pz, step, v, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _k, _len, _ref;
+    this._colors = [];
     this._blades = new THREE.Geometry();
+    baseColor = new THREE.Color(0x3d5d0a);
+    availableColors = [new THREE.Color(0x53dc23), new THREE.Color(0xb3dc23), new THREE.Color(0x23dc46), new THREE.Color(0x74ff2f)];
+    lengthAvailableColors = availableColors.length;
     step = 120;
+    idx = 0;
     xMin = -this.w >> 1;
     xMax = -xMin;
     zMin = -this.h >> 1;
@@ -402,6 +417,17 @@ Grass = (function(_super) {
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
         blade = new GrassBlade(px, 0, pz);
+        geo = blade.geometry;
+        _ref = geo.vertices;
+        for (_k = 0, _len = _ref.length; _k < _len; _k++) {
+          v = _ref[_k];
+          if (v.y < 10) {
+            this._colors[idx] = baseColor;
+          } else {
+            this._colors[idx] = availableColors[Math.random() * lengthAvailableColors >> 0];
+          }
+          idx++;
+        }
         THREE.GeometryUtils.merge(this._blades, blade);
         px += vx;
       }
@@ -418,15 +444,18 @@ Grass = (function(_super) {
   };
 
   Grass.prototype._getWindMaterial = function() {
-    var material, params, shader;
+    var attributes, material, params, shader;
     shader = new WindShader();
+    attributes = shader.attributes;
     this._uniforms = shader.uniforms;
     params = {
+      attributes: attributes,
+      uniforms: this._uniforms,
       fragmentShader: shader.fragmentShader,
       vertexShader: shader.vertexShader,
-      uniforms: this._uniforms,
       lights: true
     };
+    attributes.aColor.value = this._colors;
     this._uniforms.diffuse.value = new THREE.Color(0x084820);
     this._uniforms.ambient.value = new THREE.Color(0xffea00);
     this._uniforms.uOffsetX.value = 0.0;
@@ -459,28 +488,24 @@ var GrassBlade,
 GrassBlade = (function(_super) {
   __extends(GrassBlade, _super);
 
-  GrassBlade._SHARED_GEOMETRY = null;
-
   GrassBlade.prototype.geometry = null;
 
   GrassBlade.prototype.texture = null;
 
   function GrassBlade(x, y, z) {
-    if (!GrassBlade._SHARED_GEOMETRY) {
-      GrassBlade.initGeometry(x, y, z);
-    }
-    this.geometry = GrassBlade._SHARED_GEOMETRY;
+    var h, pz, w;
+    pz = z - 500;
+    w = 1 + Math.random() * 1;
+    h = 70 + 40 * (1 - (1000 - pz) * .001);
+    this.geometry = new THREE.PlaneGeometry(w, h, 1, 1);
+    this.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, h >> 1, 0));
     this.texture = new THREE.MeshLambertMaterial({
       color: 0xfff000
     });
     THREE.Mesh.call(this, this.geometry, this.texture);
+    this.rotation.x = Math.random() * .4 - .2;
     this.position.set(x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5);
   }
-
-  GrassBlade.initGeometry = function(x, y, z) {
-    GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry(1 + Math.random() * 1, 50, 1, 1);
-    return GrassBlade._SHARED_GEOMETRY.applyMatrix(new THREE.Matrix4().makeTranslation(0, 25, 0));
-  };
 
   return GrassBlade;
 
@@ -562,12 +587,12 @@ EngineSingleton = (function() {
       this.renderer = new THREE.WebGLRenderer({
         alpha: false
       });
-      this.renderer.setClearColor(0x222222, 1);
+      this.renderer.setClearColor(0x416ca3, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(0, 200, 100);
+      this.camera.position.set(0, 130, 150);
       this.camera.lookAt(new THREE.Vector3(0, 100, -200));
       this.scene = new THREE.Scene();
       this._initLights();
@@ -576,9 +601,9 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype._initLights = function() {
       var ambient, pointLight;
-      ambient = new THREE.AmbientLight(0x101010);
+      ambient = new THREE.AmbientLight(0x8b937f);
       this.scene.add(ambient);
-      pointLight = new THREE.PointLight(0xe9ff9b, 2, 1000);
+      pointLight = new THREE.PointLight(0xe9ff9b, 2, 1500);
       pointLight.position.set(50, 50, 50);
       return this.scene.add(pointLight);
     };

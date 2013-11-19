@@ -8,6 +8,7 @@ class Grass extends THREE.Object3D
     _blades: null    
 
     _uniforms: null
+    _colors: null
 
     _sign: 1
     _add: 0
@@ -21,8 +22,21 @@ class Grass extends THREE.Object3D
         @_createGrass()
 
     _generateBlades: ->
+        @_colors = []
         @_blades = new THREE.Geometry()
+
+        baseColor = new THREE.Color 0x3d5d0a
+        availableColors = [ 
+            new THREE.Color 0x53dc23
+            new THREE.Color 0xb3dc23
+            new THREE.Color 0x23dc46
+            new THREE.Color 0x74ff2f 
+        ]
+        lengthAvailableColors = availableColors.length
+
         step = 120
+
+        idx = 0
 
         xMin = -@w >> 1
         xMax = -xMin
@@ -36,9 +50,18 @@ class Grass extends THREE.Object3D
         for i in [ 0...step ]
             for j in [ 0...step ]
                 blade = new GrassBlade px, 0, pz
+                geo = blade.geometry
+                for v in geo.vertices
+                    if v.y < 10
+                        @_colors[ idx ] = baseColor
+                    else
+                        @_colors[ idx ] = availableColors[ Math.random() * lengthAvailableColors >> 0 ]
+                    idx++
+
                 THREE.GeometryUtils.merge @_blades, blade
 
                 px += vx
+
             px = xMin
             pz += vz
 
@@ -50,13 +73,17 @@ class Grass extends THREE.Object3D
 
     _getWindMaterial: ->
         shader = new WindShader()
+        attributes = shader.attributes
         @_uniforms = shader.uniforms
 
         params =
+            attributes: attributes
+            uniforms: @_uniforms
             fragmentShader: shader.fragmentShader
             vertexShader: shader.vertexShader
-            uniforms: @_uniforms
             lights: true
+
+        attributes.aColor.value = @_colors
 
         @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
         @_uniforms.ambient.value = new THREE.Color( 0xffea00 )

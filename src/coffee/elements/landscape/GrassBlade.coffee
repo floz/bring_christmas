@@ -1,19 +1,20 @@
 class GrassBlade extends THREE.Mesh
 
-    @_SHARED_GEOMETRY = null
-
     geometry: null
     texture: null
 
     constructor: ( x, y, z ) ->
-        GrassBlade.initGeometry( x, y, z ) if !GrassBlade._SHARED_GEOMETRY
-        @geometry = GrassBlade._SHARED_GEOMETRY
+        pz = z - 500
+        w = 1 + Math.random() * 1
+        h = 70 + 40 * ( 1 - ( 1000 - pz ) * .001 )
+        # h = 50
+
+        @geometry = new THREE.PlaneGeometry w, h, 1, 1
+        @geometry.applyMatrix new THREE.Matrix4().makeTranslation 0, h >> 1, 0 
+
         @texture = new THREE.MeshLambertMaterial color: 0xfff000
 
         THREE.Mesh.call @, @geometry, @texture
 
+        @.rotation.x = Math.random() * .4 - .2
         @.position.set x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5
-
-    @initGeometry = ( x, y, z )->
-        GrassBlade._SHARED_GEOMETRY = new THREE.PlaneGeometry 1 + Math.random() * 1, 50, 1, 1
-        GrassBlade._SHARED_GEOMETRY.applyMatrix new THREE.Matrix4().makeTranslation 0, 25, 0 

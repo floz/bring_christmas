@@ -113,6 +113,7 @@ class DisplacementShader
                 THREE.ShaderChunk[ "lights_lambert_vertex" ]
                 THREE.ShaderChunk[ "shadowmap_vertex" ]
 
+
             "}"
 
         ].join("\n")

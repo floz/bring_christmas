@@ -1,5 +1,12 @@
 class WindShader
 
+    attributes: {
+        aColor: {
+            type: "c"
+            value: null
+        }
+    }
+
     uniforms: THREE.UniformsUtils.merge( [
 
             THREE.UniformsLib[ "common" ]
@@ -26,6 +33,8 @@ class WindShader
 
             "#define LAMBERT"
 
+            "attribute vec3 aColor;"
+
             "uniform float uOffsetX;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
@@ -35,6 +44,7 @@ class WindShader
 
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
+            "varying vec3 vColor;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -108,6 +118,7 @@ class WindShader
 
                 "#endif"
 
+                "vColor = aColor;"
                 "gl_Position = projectionMatrix * mvPosition;"
 
                 THREE.ShaderChunk[ "worldpos_vertex" ]
@@ -124,6 +135,7 @@ class WindShader
             "uniform float opacity;"
 
             "varying vec3 vLightFront;"
+            "varying vec3 vColor;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -141,16 +153,13 @@ class WindShader
 
             "void main() {"
 
-                "gl_FragColor = vec4( vec3 ( 1.0 ), opacity );"
+                "gl_FragColor = vec4( vColor, opacity );"
 
                 THREE.ShaderChunk[ "map_fragment" ]
                 THREE.ShaderChunk[ "alphatest_fragment" ]
                 THREE.ShaderChunk[ "specularmap_fragment" ]
 
                 "#ifdef DOUBLE_SIDED"
-
-                    #"float isFront = float( gl_FrontFacing );"
-                    #"gl_FragColor.xyz *= isFront * vLightFront + ( 1.0 - isFront ) * vLightBack;"
 
                     "if ( gl_FrontFacing )"
                         "gl_FragColor.xyz *= vLightFront;"
