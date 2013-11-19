@@ -6,3 +6,8 @@ body {
   font-weight: bold;
   overflow: hidden;
 }
+
+/* line 9, ../../src/sass/main.scss */
+#textures {
+  display: none;
+}

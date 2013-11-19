@@ -1,11 +1,11 @@
 class World extends THREE.Object3D
 
-	_floor: null
+	_land: null
 
 	constructor: ->
 		THREE.Object3D.call @
 		@_init()
 
 	_init: ->
-		@_floor = new Floor()
-		@.add @_floor
+		@_land = new Land()
+		@.add @_land

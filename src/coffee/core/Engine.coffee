@@ -12,25 +12,16 @@ class EngineSingleton
 
         init: ( container ) ->
             @renderer = new THREE.WebGLRenderer alpha: false
-            @renderer.setClearColor 0x222222, 1
+            @renderer.setClearColor 0x416ca3, 1
             @renderer.setSize stage.size.w, stage.size.h
-            console.log stage.size.w, stage.size.h
 
             @_container = container
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
-            @camera.position.set 200, 200, 500
-            @camera.lookAt new THREE.Vector3 0, 0, 0
-
-            @controls = new THREE.TrackballControls @camera
-            @controls.rotateSpeed = 1
-            @controls.zoomSpeed = .2
-            @controls.panSpeed = .8
-            @controls.noZoom = false
-            @controls.noPan = false
-            @controls.staticMoving = true
-            @controls.dynamicDampingFactor = .3
+            @camera.position.set 0, 130, 150
+            @camera.lookAt new THREE.Vector3 0, 100, -200
+            # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
 
@@ -39,18 +30,18 @@ class EngineSingleton
             updateManager.register @
 
         _initLights: ->
-            ambient = new THREE.AmbientLight 0x101010
+            ambient = new THREE.AmbientLight 0x8b937f
             @scene.add ambient
 
-            directionalLight = new THREE.DirectionalLight 0xffffff
-            directionalLight.position.set( 1, 1, 2 ).normalize()
-            @scene.add directionalLight
+            # directionalLight = new THREE.DirectionalLight 0xffffff
+            # directionalLight.position.set( 1, 1, 2 ).normalize()
+            # @scene.add directionalLight
 
-            pointLight = new THREE.PointLight( 0xffffff )
-            @scene.add pointLight        
+            pointLight = new THREE.PointLight( 0xe9ff9b, 2, 1500 )
+            pointLight.position.set 50, 50, 50
+            @scene.add pointLight
 
         update: ->
-            @controls.update()
             @renderer.render @scene, @camera
 
     instance = null
