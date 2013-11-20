@@ -20,6 +20,8 @@ class WindShader
                 "wrapRGB"  : { type: "v3", value: new THREE.Vector3( 1, 1, 1 ) }
 
                 "uOffsetX" : { type: "f", value: 0.0 }
+                "uZoneW": { type: "f", vaue: 0.0 }
+                "uFloorW": { type: "f", value: 0.0 }
                 "uWindMapForce": { type: "t", value: null }
                 "uWindScale": { type: "f", value: 1.0 }
                 "uWindMin": { type: "v2", value: null }
@@ -36,6 +38,8 @@ class WindShader
             "attribute vec3 aColor;"
 
             "uniform float uOffsetX;"
+            "uniform float uZoneW;"
+            "uniform float uFloorW;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
             "uniform vec2 uWindMin;"
@@ -92,19 +96,18 @@ class WindShader
 
                 "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )"
 
-                    "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
-                    # "wpos.x = wpos.x + 500.0;"
-                    "wpos.z = -wpos.z;"
-                    "vec2 totPos = wpos.xz - uWindMin;"
-                    "vec2 windUV = totPos / 1000.0;"
-                    # "windUV.x = windUV.x * 0.5 + uOffsetX / 3.0 * 0.0025;"
-                    "windUV.x = windUV.x + uOffsetX * 0.0025;"
+                    "float percentX = position.x / uZoneW;"
+                    "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );"
+                    "percentX = percentX + percentOffsetX;"
+                    "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );"
 
-                    # "windUV = vec2( uv.x * 0.5 + uOffsetX * 0.0025, uv.y );"
-                    "vWindForce = texture2D( uWindMapForce, windUV ).x;"
+                    "if( posPercent.x > 1.0 )"
+                        "posPercent.x = posPercent.x - 1.0;"
+
+                    "vWindForce = texture2D( uWindMapForce, posPercent ).x;"
 
                     "float windFactor = 0.0;"
-                    "if ( position.y != 0.0 )"
+                    "if ( position.y > 10.0 )"
                         "windFactor = 1.0;"
                     "float windMod = ( 1.0 - vWindForce ) * windFactor;"
 
@@ -136,6 +139,7 @@ class WindShader
 
             "varying vec3 vLightFront;"
             "varying vec3 vColor;"
+            "varying vec4 vDebugColor;"
 
             "#ifdef DOUBLE_SIDED"
 

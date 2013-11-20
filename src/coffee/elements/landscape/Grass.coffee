@@ -38,10 +38,10 @@ class Grass extends THREE.Object3D
 
         idx = 0
 
-        xMin = -@w >> 1
-        xMax = -xMin
-        zMin = -@h >> 1
-        zMax = -zMin
+        xMin = 0
+        xMax = @w
+        zMin = 0
+        zMax = @h
 
         px = xMin
         pz = zMin
@@ -70,6 +70,8 @@ class Grass extends THREE.Object3D
     _createGrass: ->
         mesh = new THREE.Mesh @_blades, @_getWindMaterial()
         @.add mesh
+        mesh.position.x = -@w >> 1
+        mesh.position.z = -@h >> 1
 
     _getWindMaterial: ->
         shader = new WindShader()
@@ -88,6 +90,8 @@ class Grass extends THREE.Object3D
         @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
         @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
         @_uniforms.uOffsetX.value = 0.0
+        @_uniforms.uZoneW.value = @w >> 1
+        @_uniforms.uFloorW.value = @w
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src
         @_uniforms.uWindScale.value = 1
         @_uniforms.uWindMin.value = new THREE.Vector2 0, 0
@@ -97,11 +101,9 @@ class Grass extends THREE.Object3D
         material = new THREE.ShaderMaterial params
 
     update: ->
-        if @_add > 300
-            @_sign = -1
-        else if @_add < 0
-            @_sign = 1
-        @_add += 1 * @_sign
+        if @_add > 256
+            @_add = 0
+        @_add += 1
 
         @_uniforms.uOffsetX.value = @_add
 
