@@ -9,6 +9,7 @@ class Grass extends THREE.Object3D
 
     _uniforms: null
     _colors: null
+    _windRatio: null
 
     _sign: 1
     _add: 0
@@ -23,6 +24,7 @@ class Grass extends THREE.Object3D
 
     _generateBlades: ->
         @_colors = []
+        @_windRatio = []
         @_blades = new THREE.Geometry()
 
         baseColor = new THREE.Color 0x3d5d0a
@@ -34,7 +36,7 @@ class Grass extends THREE.Object3D
         ]
         lengthAvailableColors = availableColors.length
 
-        step = 120
+        step = 160
 
         idx = 0
 
@@ -53,9 +55,12 @@ class Grass extends THREE.Object3D
                 geo = blade.geometry
                 for v in geo.vertices
                     if v.y < 10
+                        @_windRatio[ idx ] = 0.0
                         @_colors[ idx ] = baseColor
                     else
                         @_colors[ idx ] = availableColors[ Math.random() * lengthAvailableColors >> 0 ]
+                        @_windRatio[ idx ] = 1.0
+                    v.y += HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
                     idx++
 
                 THREE.GeometryUtils.merge @_blades, blade
@@ -86,12 +91,15 @@ class Grass extends THREE.Object3D
             lights: true
 
         attributes.aColor.value = @_colors
+        attributes.aWindRatio.value = @_windRatio
 
         @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
         @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
+
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
+
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src
         @_uniforms.uWindScale.value = 1
         @_uniforms.uWindMin.value = new THREE.Vector2 0, 0

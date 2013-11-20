@@ -4,6 +4,10 @@ class WindShader
         aColor: {
             type: "c"
             value: null
+        },
+        aWindRatio: {
+            type: "f"
+            value: null
         }
     }
 
@@ -36,6 +40,7 @@ class WindShader
             "#define LAMBERT"
 
             "attribute vec3 aColor;"
+            "attribute float aWindRatio;"
 
             "uniform float uOffsetX;"
             "uniform float uZoneW;"
@@ -106,9 +111,7 @@ class WindShader
 
                     "vWindForce = texture2D( uWindMapForce, posPercent ).x;"
 
-                    "float windFactor = 0.0;"
-                    "if ( position.y > 10.0 )"
-                        "windFactor = 1.0;"
+                    "float windFactor = aWindRatio;"
                     "float windMod = ( 1.0 - vWindForce ) * windFactor;"
 
                     "vec4 pos = vec4( position, 1.0 );"
@@ -116,7 +119,6 @@ class WindShader
                     "pos.y += windMod * uWindDirection.y;"
                     "pos.z += windMod * uWindDirection.z;"
 
-                    # "mvPosition = modelViewMatrix * vec4( position, 1.0 );"
                     "mvPosition = modelViewMatrix * pos;"
 
                 "#endif"
