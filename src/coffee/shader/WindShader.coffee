@@ -49,7 +49,6 @@ class WindShader
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
             "varying vec3 vColor;"
-            "varying vec4 vDebugColor;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -96,23 +95,16 @@ class WindShader
                 "#endif"
 
                 "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )"
-                
+
                     "float percentX = position.x / uZoneW;"
                     "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );"
                     "percentX = percentX + percentOffsetX;"
-                    "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * .5 );"
+                    "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );"
 
                     "if( posPercent.x > 1.0 )"
                         "posPercent.x = posPercent.x - 1.0;"
 
                     "vWindForce = texture2D( uWindMapForce, posPercent ).x;"
-                    "vDebugColor = texture2D( uWindMapForce, posPercent );"
-
-                    # "vec2 totPos = worldPos.xz;"
-                    # "vec2 windUV = totPos / uFloorW;"
-                    # "windUV.x = windUV.x + uOffsetX * 0.0025;"
-
-                    # "vWindForce = texture2D( uWindMapForce, windUV ).x;"
 
                     "float windFactor = 0.0;"
                     "if ( position.y > 10.0 )"
@@ -165,25 +157,24 @@ class WindShader
 
             "void main() {"
 
-                # "gl_FragColor = vec4( vColor, opacity );"
-                "gl_FragColor = vec4( vDebugColor.xyz, opacity );"
+                "gl_FragColor = vec4( vColor, opacity );"
 
                 THREE.ShaderChunk[ "map_fragment" ]
                 THREE.ShaderChunk[ "alphatest_fragment" ]
                 THREE.ShaderChunk[ "specularmap_fragment" ]
 
-                # "#ifdef DOUBLE_SIDED"
+                "#ifdef DOUBLE_SIDED"
 
-                #     "if ( gl_FrontFacing )"
-                #         "gl_FragColor.xyz *= vLightFront;"
-                #     "else"
-                #         "gl_FragColor.xyz *= vLightBack;"
+                    "if ( gl_FrontFacing )"
+                        "gl_FragColor.xyz *= vLightFront;"
+                    "else"
+                        "gl_FragColor.xyz *= vLightBack;"
 
-                # "#else"
+                "#else"
 
-                #     "gl_FragColor.xyz *= vLightFront;"
+                    "gl_FragColor.xyz *= vLightFront;"
 
-                # "#endif"
+                "#endif"
 
                 THREE.ShaderChunk[ "lightmap_fragment" ]
                 THREE.ShaderChunk[ "color_fragment" ]

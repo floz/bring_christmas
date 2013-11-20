@@ -38,10 +38,8 @@ class Grass extends THREE.Object3D
 
         idx = 0
 
-        # xMin = -@w >> 1
         xMin = 0
         xMax = @w
-        # zMin = -@h >> 1
         zMin = 0
         zMax = @h
 
