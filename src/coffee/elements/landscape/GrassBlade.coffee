@@ -16,5 +16,5 @@ class GrassBlade extends THREE.Mesh
 
         THREE.Mesh.call @, @geometry, @texture
 
-        @.rotation.x = Math.random() * .4 - .2
+        @.rotation.x = Math.random() * .6 - .3
         @.position.set x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5

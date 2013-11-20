@@ -71,6 +71,14 @@ WindShader = (function() {
         type: "f",
         value: 0.0
       },
+      "uZoneW": {
+        type: "f",
+        vaue: 0.0
+      },
+      "uFloorW": {
+        type: "f",
+        value: 0.0
+      },
       "uWindMapForce": {
         type: "t",
         value: null
@@ -94,9 +102,9 @@ WindShader = (function() {
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "uniform float uOffsetX;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "wpos.z = -wpos.z;", "vec2 totPos = wpos.xz - uWindMin;", "vec2 windUV = totPos / 1000.0;", "windUV.x = windUV.x + uOffsetX * 0.0025;", "vWindForce = texture2D( uWindMapForce, windUV ).x;", "float windFactor = 0.0;", "if ( position.y != 0.0 )", "windFactor = 1.0;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x;", "pos.y += windMod * uWindDirection.y;", "pos.z += windMod * uWindDirection.z;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windFactor = 0.0;", "if ( position.y > 10.0 )", "windFactor = 1.0;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x;", "pos.y += windMod * uWindDirection.y;", "pos.z += windMod * uWindDirection.z;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
-  WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vColor, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
+  WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec4 vDebugColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vColor, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
   return WindShader;
 
@@ -352,7 +360,7 @@ Floor = (function(_super) {
     this.h = h;
     this._geometry = new THREE.PlaneGeometry(w, h, 4, 4);
     this._texture = new THREE.MeshBasicMaterial({
-      color: 0x3d5d0a,
+      color: 0x234706,
       lights: false
     });
     THREE.Mesh.call(this, this._geometry, this._texture);
@@ -406,10 +414,10 @@ Grass = (function(_super) {
     lengthAvailableColors = availableColors.length;
     step = 120;
     idx = 0;
-    xMin = -this.w >> 1;
-    xMax = -xMin;
-    zMin = -this.h >> 1;
-    zMax = -zMin;
+    xMin = 0;
+    xMax = this.w;
+    zMin = 0;
+    zMax = this.h;
     px = xMin;
     pz = zMin;
     vx = this.w / step;
@@ -440,7 +448,9 @@ Grass = (function(_super) {
   Grass.prototype._createGrass = function() {
     var mesh;
     mesh = new THREE.Mesh(this._blades, this._getWindMaterial());
-    return this.add(mesh);
+    this.add(mesh);
+    mesh.position.x = -this.w >> 1;
+    return mesh.position.z = -this.h >> 1;
   };
 
   Grass.prototype._getWindMaterial = function() {
@@ -459,6 +469,8 @@ Grass = (function(_super) {
     this._uniforms.diffuse.value = new THREE.Color(0x084820);
     this._uniforms.ambient.value = new THREE.Color(0xffea00);
     this._uniforms.uOffsetX.value = 0.0;
+    this._uniforms.uZoneW.value = this.w >> 1;
+    this._uniforms.uFloorW.value = this.w;
     this._uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture(this._texture.src);
     this._uniforms.uWindScale.value = 1;
     this._uniforms.uWindMin.value = new THREE.Vector2(0, 0);
@@ -468,12 +480,10 @@ Grass = (function(_super) {
   };
 
   Grass.prototype.update = function() {
-    if (this._add > 300) {
-      this._sign = -1;
-    } else if (this._add < 0) {
-      this._sign = 1;
+    if (this._add > 256) {
+      this._add = 0;
     }
-    this._add += 1 * this._sign;
+    this._add += 1;
     return this._uniforms.uOffsetX.value = this._add;
   };
 
@@ -503,7 +513,7 @@ GrassBlade = (function(_super) {
       color: 0xfff000
     });
     THREE.Mesh.call(this, this.geometry, this.texture);
-    this.rotation.x = Math.random() * .4 - .2;
+    this.rotation.x = Math.random() * .6 - .3;
     this.position.set(x + Math.random() * 10 - 5, y, z + Math.random() * 10 - 5);
   }
 
@@ -522,7 +532,7 @@ Land = (function(_super) {
 
   function Land() {
     THREE.Object3D.call(this);
-    this._floor = new Floor(1000, 1000);
+    this._floor = new Floor(1280, 1280);
     this.add(this._floor);
     this._grass = new Grass(this._floor.w, this._floor.h);
     this.add(this._grass);
@@ -592,8 +602,8 @@ EngineSingleton = (function() {
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(0, 130, 150);
-      this.camera.lookAt(new THREE.Vector3(0, 100, -200));
+      this.camera.position.set(0, 500, 150);
+      this.camera.lookAt(new THREE.Vector3(0, 0, -1280 / 2));
       this.scene = new THREE.Scene();
       this._initLights();
       return updateManager.register(this);
