@@ -7,6 +7,7 @@ class Grass extends THREE.Object3D
     _cntBlades: null
     _blades: null    
 
+    _attributes: null
     _uniforms: null
     _colors: null
     _windRatio: null
@@ -80,18 +81,18 @@ class Grass extends THREE.Object3D
 
     _getWindMaterial: ->
         shader = new WindShader()
-        attributes = shader.attributes
+        @_attributes = shader.attributes
         @_uniforms = shader.uniforms
 
         params =
-            attributes: attributes
+            attributes: @_attributes
             uniforms: @_uniforms
             fragmentShader: shader.fragmentShader
             vertexShader: shader.vertexShader
             lights: true
 
-        attributes.aColor.value = @_colors
-        attributes.aWindRatio.value = @_windRatio
+        @_attributes.aColor.value = @_colors
+        @_attributes.aWindRatio.value = @_windRatio
 
         @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
         @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
@@ -114,4 +115,9 @@ class Grass extends THREE.Object3D
         @_add += 1
 
         @_uniforms.uOffsetX.value = @_add
+        # for i in [ 0...@_windRatio.length ]
+        #     @_windRatio[ i ] = Math.random() * 2
+        # @_attributes.aWindRatio.value = @_windRatio
+        
+        # return
 

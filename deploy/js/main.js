@@ -404,6 +404,8 @@ Grass = (function(_super) {
 
   Grass.prototype._blades = null;
 
+  Grass.prototype._attributes = null;
+
   Grass.prototype._uniforms = null;
 
   Grass.prototype._colors = null;
@@ -476,19 +478,19 @@ Grass = (function(_super) {
   };
 
   Grass.prototype._getWindMaterial = function() {
-    var attributes, material, params, shader;
+    var material, params, shader;
     shader = new WindShader();
-    attributes = shader.attributes;
+    this._attributes = shader.attributes;
     this._uniforms = shader.uniforms;
     params = {
-      attributes: attributes,
+      attributes: this._attributes,
       uniforms: this._uniforms,
       fragmentShader: shader.fragmentShader,
       vertexShader: shader.vertexShader,
       lights: true
     };
-    attributes.aColor.value = this._colors;
-    attributes.aWindRatio.value = this._windRatio;
+    this._attributes.aColor.value = this._colors;
+    this._attributes.aWindRatio.value = this._windRatio;
     this._uniforms.diffuse.value = new THREE.Color(0x084820);
     this._uniforms.ambient.value = new THREE.Color(0xffea00);
     this._uniforms.uOffsetX.value = 0.0;
