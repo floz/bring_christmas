@@ -1,9 +1,12 @@
 class Grass extends THREE.Object3D
 
+    _floor: null
     w: 0
     h: 0
 
     _texture: null
+    _projector: null
+    _vProjector: null
     _cntBlades: null
     _blades: null    
 
@@ -15,8 +18,10 @@ class Grass extends THREE.Object3D
     _sign: 1
     _add: 0
 
-    constructor: ( @w, @h ) ->
+    constructor: ( @_floor, @w, @h ) ->
         @_texture = document.getElementById "texture-noise"
+        @_projector = new THREE.Projector()
+        @_vProjector = new THREE.Vector3()
 
         THREE.Object3D.call @
 
@@ -100,6 +105,7 @@ class Grass extends THREE.Object3D
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
+        @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
 
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src
         @_uniforms.uWindScale.value = 1
@@ -115,9 +121,26 @@ class Grass extends THREE.Object3D
         @_add += 1
 
         @_uniforms.uOffsetX.value = @_add
+
+        @_vProjector.x = ( stage.mouse.x / stage.size.w ) * 2 - 1
+        @_vProjector.y = -( stage.mouse.y / stage.size.h ) * 2 + 1
+        @_vProjector.z = 1
+        @_projector.unprojectVector @_vProjector, engine.camera
+
+        camPos = engine.camera.position
+        m = @_vProjector.y / ( @_vProjector.y - camPos.y )
+
+        pos = new THREE.Vector3()
+        pos.x = @_vProjector.x + ( camPos.x - @_vProjector.x ) * m
+        pos.z = @_vProjector.z + ( camPos.z - @_vProjector.z ) * m
+
+        @_uniforms.uMousePos.value.x = pos.x
+        @_uniforms.uMousePos.value.y = pos.y
+        @_uniforms.uMousePos.value.z = pos.z
+
         # for i in [ 0...@_windRatio.length ]
         #     @_windRatio[ i ] = Math.random() * 2
         # @_attributes.aWindRatio.value = @_windRatio
-        
+
         # return
 

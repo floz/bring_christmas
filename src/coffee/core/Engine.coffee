@@ -19,7 +19,7 @@ class EngineSingleton
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
-            @camera.position.set 0, 250, 150
+            @camera.position.set 0, 250, 500
             @camera.lookAt new THREE.Vector3 0, 200, -1280/2
             # @camera.position.set 0, 0, 400
 

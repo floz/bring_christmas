@@ -31,6 +31,7 @@ class WindShader
                 "uWindMin": { type: "v2", value: null }
                 "uWindSize": { type: "v2", value: null }
                 "uWindDirection": { type: "v3", value: null }
+                "uMousePos": { type: "v3", value: null }
             }
 
         ] )
@@ -45,6 +46,7 @@ class WindShader
             "uniform float uOffsetX;"
             "uniform float uZoneW;"
             "uniform float uFloorW;"
+            "uniform vec3 uMousePos;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
             "uniform vec2 uWindMin;"
@@ -101,23 +103,36 @@ class WindShader
 
                 "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )"
 
-                    "float percentX = position.x / uZoneW;"
-                    "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );"
-                    "percentX = percentX + percentOffsetX;"
-                    "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );"
+                    # "float percentX = position.x / uZoneW;"
+                    # "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );"
+                    # "percentX = percentX + percentOffsetX;"
+                    # "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );"
 
-                    "if( posPercent.x > 1.0 )"
-                        "posPercent.x = posPercent.x - 1.0;"
+                    # "if( posPercent.x > 1.0 )"
+                    #     "posPercent.x = posPercent.x - 1.0;"
 
-                    "vWindForce = texture2D( uWindMapForce, posPercent ).x;"
+                    # "vWindForce = texture2D( uWindMapForce, posPercent ).x;"
 
-                    "float windFactor = aWindRatio;"
-                    "float windMod = ( 1.0 - vWindForce ) * windFactor;"
+                    # "float windFactor = aWindRatio;"
+                    # "float windMod = ( 1.0 - vWindForce ) * windFactor;"
+
+                    # "vec4 pos = vec4( position, 1.0 );"
+                    # "pos.x += windMod * uWindDirection.x;"
+                    # "pos.y += windMod * uWindDirection.y;"
+                    # "pos.z += windMod * uWindDirection.z;"
+
+                    # "mvPosition = modelViewMatrix * pos;"
+
+                    "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
+                    "float dx = uMousePos.x - wpos.x;"
+                    "float dz = uMousePos.z - wpos.z;"
+                    "float dist = sqrt( dx * dx + dz * dz );"
+                    "if( dist > 100.0 )"
+                        "dist = 100.0;"
+                    "dist = 100.0 - dist;"
 
                     "vec4 pos = vec4( position, 1.0 );"
-                    "pos.x += windMod * uWindDirection.x;"
-                    "pos.y += windMod * uWindDirection.y;"
-                    "pos.z += windMod * uWindDirection.z;"
+                    "pos.y += dist / 10.0 * aWindRatio;"
 
                     "mvPosition = modelViewMatrix * pos;"
 
