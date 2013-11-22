@@ -130,9 +130,10 @@ class WindShader
                     "if( dist > 100.0 )"
                         "dist = 100.0;"
                     "dist = 100.0 - dist;"
+                    "dist *= 4.0;"
 
                     "vec4 pos = vec4( position, 1.0 );"
-                    "pos.y += dist / 10.0 * aWindRatio;"
+                    "pos.y -= dist / 10.0 * aWindRatio;"
 
                     "mvPosition = modelViewMatrix * pos;"
 

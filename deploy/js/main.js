@@ -110,7 +110,7 @@ WindShader = (function() {
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute float aWindRatio;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "float dx = uMousePos.x - wpos.x;", "float dz = uMousePos.z - wpos.z;", "float dist = sqrt( dx * dx + dz * dz );", "if( dist > 100.0 )", "dist = 100.0;", "dist = 100.0 - dist;", "vec4 pos = vec4( position, 1.0 );", "pos.y += dist / 10.0 * aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute float aWindRatio;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "float dx = uMousePos.x - wpos.x;", "float dz = uMousePos.z - wpos.z;", "float dist = sqrt( dx * dx + dz * dz );", "if( dist > 100.0 )", "dist = 100.0;", "dist = 100.0 - dist;", "dist *= 4.0;", "vec4 pos = vec4( position, 1.0 );", "pos.y -= dist / 10.0 * aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
   WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec4 vDebugColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vColor, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
@@ -737,6 +737,8 @@ StageSingleton = (function() {
   function StageSingleton() {}
 
   StageInstance = (function() {
+    StageInstance.prototype.lastMouse = null;
+
     StageInstance.prototype.mouse = null;
 
     StageInstance.prototype.size = null;
@@ -746,9 +748,13 @@ StageSingleton = (function() {
     function StageInstance() {
       this._onResize = __bind(this._onResize, this);
       this._onMouseMove = __bind(this._onMouseMove, this);
+      this.lastMouse = {
+        x: 0.0,
+        y: 0.0
+      };
       this.mouse = {
-        x: 0,
-        y: 0
+        x: 0.0,
+        y: 0.0
       };
       this.size = {
         w: 0,
@@ -761,6 +767,8 @@ StageSingleton = (function() {
     }
 
     StageInstance.prototype._onMouseMove = function(e) {
+      this.lastMouse.x = this.mouse.x;
+      this.lastMouse.y = this.mouse.y;
       this.mouse.x = e.clientX;
       return this.mouse.y = e.clientY;
     };
