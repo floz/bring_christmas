@@ -99,8 +99,8 @@ class Grass extends THREE.Object3D
         @_attributes.aColor.value = @_colors
         @_attributes.aWindRatio.value = @_windRatio
 
-        @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
-        @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
+        # @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
+        # @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
 
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1

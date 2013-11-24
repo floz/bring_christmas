@@ -176,6 +176,7 @@ class WindShader
             "void main() {"
 
                 "gl_FragColor = vec4( vColor, opacity );"
+                # "gl_FragColor = vec4( vec3( 1.0 ), opacity );"
 
                 THREE.ShaderChunk[ "map_fragment" ]
                 THREE.ShaderChunk[ "alphatest_fragment" ]

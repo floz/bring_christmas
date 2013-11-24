@@ -504,8 +504,6 @@ Grass = (function(_super) {
     };
     this._attributes.aColor.value = this._colors;
     this._attributes.aWindRatio.value = this._windRatio;
-    this._uniforms.diffuse.value = new THREE.Color(0x084820);
-    this._uniforms.ambient.value = new THREE.Color(0xffea00);
     this._uniforms.uOffsetX.value = 0.0;
     this._uniforms.uZoneW.value = this.w >> 1;
     this._uniforms.uFloorW.value = this.w;
