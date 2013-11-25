@@ -839,15 +839,15 @@ WindDisplacementData = (function() {
   };
 
   WindDisplacementData.prototype.update = function(x, y) {
-    var a, channel, dist, dx, dy, newOrientation, _i, _len, _ref;
+    var a, channel, dist, dx, dy, newOrientation, _i, _j, _len, _len1, _ref, _ref1;
     x = this._scaleX(x);
     y = this._scaleY(y);
-    _ref = this._channels;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      channel = _ref[_i];
-      channel.fill(this._alpha);
-    }
     if (this._lastX !== x || this._lastY !== y) {
+      _ref = this._channels;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        channel = _ref[_i];
+        channel.fill(this._alpha);
+      }
       dx = x - this._pOrientation.x;
       dy = y - this._pOrientation.y;
       this._pOrientation.x += dx * .1;
@@ -875,19 +875,21 @@ WindDisplacementData = (function() {
       dx = x - this._lastX;
       dy = y - this._lastY;
       dist = Math.sqrt(dx * dx + dy * dy);
-      this._speed += dist * .15;
+      this._speed += dist * .05;
       this._speed += -this._speed * .05;
     } else {
-      this._alpha += (1 - this._alpha) * .001;
+      this._alpha += (1 - this._alpha) * .05;
       a = this._orientation;
       this._pOrientation.x += Math.cos(a) * this._speed;
       this._pOrientation.y += Math.sin(a) * this._speed;
-      if (this._alpha < .9) {
-        this._drawCanvas();
-      }
+      this._drawCanvas();
       this._speed += -this._speed * .1;
+      _ref1 = this._channels;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        channel = _ref1[_j];
+        channel.fill(this._alpha);
+      }
     }
-    console.log(this._speed);
     this._lastX = x;
     return this._lastY = y;
   };

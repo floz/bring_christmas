@@ -29,9 +29,9 @@ class WindDisplacementData
         x = @_scaleX x
         y = @_scaleY y
 
-        channel.fill @_alpha for channel in @_channels
-
         if @_lastX != x || @_lastY != y
+            channel.fill @_alpha for channel in @_channels
+
             dx = x - @_pOrientation.x
             dy = y - @_pOrientation.y
             @_pOrientation.x += dx * .1
@@ -58,21 +58,20 @@ class WindDisplacementData
             dx = x - @_lastX
             dy = y - @_lastY
             dist = Math.sqrt dx * dx + dy * dy
-            @_speed += dist * .15
+            @_speed += dist * .05
             @_speed += - @_speed * .05
         else
-            @_alpha += ( 1 - @_alpha ) * .001
+            @_alpha += ( 1 - @_alpha ) * .05
 
             a = @_orientation
             @_pOrientation.x += Math.cos( a ) * @_speed
             @_pOrientation.y += Math.sin( a ) * @_speed
 
-            if @_alpha < .9
-                @_drawCanvas()
+            @_drawCanvas()
 
             @_speed += - @_speed * .1
 
-        console.log @_speed
+            channel.fill @_alpha for channel in @_channels
 
         @_lastX = x
         @_lastY = y
