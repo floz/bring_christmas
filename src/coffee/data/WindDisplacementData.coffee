@@ -4,6 +4,7 @@ class WindDisplacementData
     _yMin: 1.0
     _xMax: 1.0
     _yMax: 1.0
+    _canRotate: false
 
     canvas: null
     _size: 0
@@ -11,7 +12,7 @@ class WindDisplacementData
     _textDisplacement: null
     _textDisplacementW: 0
     _textDisplacementH: 0
-    _fillStyle: "rgba( 127, 127, 255, .135 )"
+    _fillStyle: "rgba( 128, 128, 128, .1 )"
 
     _pOrientation: { x: 0.0, y: 0.0 }
     _orientation: 0.0
@@ -19,14 +20,16 @@ class WindDisplacementData
     _lastX: 0.0
     _lastY: 0.0
 
-    constructor: ( @_xMin, @_yMin, @_xMax, @_yMax ) ->
-        @canvas = document.getElementById "map-displacement"
+    constructor: ( idCanvas, idText, @_xMin, @_yMin, @_xMax, @_yMax, canRotate ) ->
+        @_canRotate = canRotate || false
+
+        @canvas = document.getElementById idCanvas
         @_size = @canvas.width
         @_ctx = @canvas.getContext "2d"
-        @_ctx.fillStyle = "rgba( 127, 127, 255, 1 )"
+        @_ctx.fillStyle = "rgba( 128, 128, 128, 1 )"
         @_ctx.fillRect 0, 0, @_size, @_size
 
-        @_textDisplacement = document.getElementById "texture-displacement"
+        @_textDisplacement = document.getElementById idText
         @_textDisplacementW = @_textDisplacement.width
         @_textDisplacementH = @_textDisplacement.height
 
@@ -48,19 +51,21 @@ class WindDisplacementData
             dx = x - @_pOrientation.x
             dy = y - @_pOrientation.y
 
-        newOrientation = Math.atan2 dy, dx
-        @_orientation += Math.PI * 2 while newOrientation - @_orientation > Math.PI 
-        @_orientation -= Math.PI * 2 while newOrientation - @_orientation < -Math.PI
-        @_orientation += ( newOrientation - @_orientation ) * .1
+        if @_canRotate
+            newOrientation = Math.atan2 dy, dx
+            @_orientation += Math.PI * 2 while newOrientation - @_orientation > Math.PI 
+            @_orientation -= Math.PI * 2 while newOrientation - @_orientation < -Math.PI
+            @_orientation += ( newOrientation - @_orientation ) * .1
 
         @_ctx.fillStyle = @_fillStyle
         @_ctx.fillRect 0, 0, @_size, @_size
 
-        @_ctx.save()
-        @_ctx.translate @_pOrientation.x, @_pOrientation.y
-        @_ctx.rotate @_orientation
-        @_ctx.drawImage @_textDisplacement, -@_textDisplacementW >> 1, -@_textDisplacementH >> 1
-        @_ctx.restore()
+        if @_lastX != x || @_lastY != y
+            @_ctx.save()
+            @_ctx.translate @_pOrientation.x, @_pOrientation.y
+            @_ctx.rotate @_orientation if @_canRotate
+            @_ctx.drawImage @_textDisplacement, -@_textDisplacementW >> 1, -@_textDisplacementH >> 1
+            @_ctx.restore()
 
         @_lastX = x
         @_lastY = y

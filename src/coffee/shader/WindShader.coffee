@@ -17,6 +17,10 @@ class WindShader
             type: "f"
             value: null
         }
+        aPosition: {
+            type: "v3"
+            value: null
+        }
     }
 
     uniforms: THREE.UniformsUtils.merge( [
@@ -40,7 +44,9 @@ class WindShader
                 "uWindSize": { type: "v2", value: null }
                 "uWindDirection": { type: "v3", value: null }
                 "uMousePos": { type: "v3", value: null }
-                "uWindDisplacement": { type: "t", value: null }
+                "uWindDisplacementR": { type: "t", value: null }
+                "uWindDisplacementG": { type: "t", value: null }
+                "uWindDisplacementB": { type: "t", value: null }
             }
 
         ] )
@@ -53,6 +59,7 @@ class WindShader
             "attribute float aWindRatio;"
             "attribute float aWindOrientation;"
             "attribute float aWindLength;"
+            "attribute vec3 aPosition;"
 
             "uniform float uOffsetX;"
             "uniform float uZoneW;"
@@ -63,7 +70,9 @@ class WindShader
             "uniform vec2 uWindMin;"
             "uniform vec2 uWindSize;"
             "uniform vec3 uWindDirection;"
-            "uniform sampler2D uWindDisplacement;"
+            "uniform sampler2D uWindDisplacementR;"
+            "uniform sampler2D uWindDisplacementG;"
+            "uniform sampler2D uWindDisplacementB;"
 
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
@@ -132,13 +141,6 @@ class WindShader
                     "float windFactor = aWindRatio;"
                     "float windMod = ( 1.0 - vWindForce ) * windFactor;"
 
-                    # "vec4 pos = vec4( position, 1.0 );"
-                    # "pos.x += windMod * uWindDirection.x;"
-                    # "pos.y += windMod * uWindDirection.y;"
-                    # "pos.z += windMod * uWindDirection.z;"
-
-                    # "mvPosition = modelViewMatrix * pos;"
-
                     ##
 
                     # "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
@@ -152,19 +154,21 @@ class WindShader
 
                     ##
 
-                    "vec2 percent = vec2( position.x / 1280.0, position.z / 1280.0 );"
-                    "vec3 colorData = texture2D( uWindDisplacement, percent ).rgb;"
-                    "vec4 pos = vec4( position, 1.0 );"
-
                     "vec2 src = vec2( 0, 1 );"
                     "vec2 dest = vec2( -1, 1 );"
-                    "float r = convertToRange( colorData.r, src, dest );"
-                    "float g = convertToRange( colorData.g, src, dest );"
-                    "float b = convertToRange( colorData.b, src, dest );"
 
-                    "pos.x += windMod * uWindDirection.x;"# - r * 30.0 * aWindRatio;"
-                    "pos.y += windMod * uWindDirection.y - g * 15.0 * aWindRatio;"
-                    "pos.z += windMod * uWindDirection.z;"# - b * 15.0 * aWindRatio;"
+                    "vec2 percent = vec2( aPosition.x / 1280.0, aPosition.z / 1280.0 );"
+                    "float r = texture2D( uWindDisplacementR, percent ).r;"
+                    "r = convertToRange( r, src, dest );"
+                    "float g = texture2D( uWindDisplacementG, percent ).g;"
+                    "g = convertToRange( g, src, dest );"
+                    "float b = texture2D( uWindDisplacementB, percent ).b;"
+                    "b = convertToRange( b, src, dest );"
+
+                    "vec4 pos = vec4( position, 1.0 );"
+                    "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;"
+                    "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;"
+                    "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;"
 
                     "mvPosition = modelViewMatrix * pos;"
 

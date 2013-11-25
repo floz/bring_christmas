@@ -20,7 +20,7 @@ class EngineSingleton
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
             @camera.position.set 0, 300, 250
-            @camera.lookAt new THREE.Vector3 0, 200, -1280/2
+            @camera.lookAt new THREE.Vector3 0, 0, -1280/2
             # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
