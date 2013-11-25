@@ -54,6 +54,14 @@ WindShader = (function() {
     aWindRatio: {
       type: "f",
       value: null
+    },
+    aWindOrientation: {
+      type: "f",
+      value: null
+    },
+    aWindLength: {
+      type: "f",
+      value: null
     }
   };
 
@@ -106,11 +114,15 @@ WindShader = (function() {
       "uMousePos": {
         type: "v3",
         value: null
+      },
+      "uWindDisplacement": {
+        type: "t",
+        value: null
       }
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute float aWindRatio;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "vec4 wpos = modelMatrix * vec4( position, 1.0 );", "float dx = uMousePos.x - wpos.x;", "float dz = uMousePos.z - wpos.z;", "float dist = sqrt( dx * dx + dz * dz );", "if( dist > 100.0 )", "dist = 100.0;", "dist = 100.0 - dist;", "dist *= 4.0;", "vec4 pos = vec4( position, 1.0 );", "pos.y -= dist / 10.0 * aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacement;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windFactor = aWindRatio;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec2 percent = vec2( position.x / 1280.0, position.z / 1280.0 );", "vec3 colorData = texture2D( uWindDisplacement, percent ).rgb;", "vec4 pos = vec4( position, 1.0 );", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "float r = convertToRange( colorData.r, src, dest );", "float g = convertToRange( colorData.g, src, dest );", "float b = convertToRange( colorData.b, src, dest );", "pos.x += windMod * uWindDirection.x;", "pos.y += windMod * uWindDirection.y - g * 15.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
   WindShader.prototype.fragmentShader = ["uniform float opacity;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec4 vDebugColor;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "gl_FragColor = vec4( vColor, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
@@ -410,9 +422,13 @@ Grass = (function(_super) {
 
   Grass.prototype._vProjector = null;
 
+  Grass.prototype._displacementData = null;
+
   Grass.prototype._cntBlades = null;
 
   Grass.prototype._blades = null;
+
+  Grass.prototype._vectors = null;
 
   Grass.prototype._attributes = null;
 
@@ -421,6 +437,18 @@ Grass = (function(_super) {
   Grass.prototype._colors = null;
 
   Grass.prototype._windRatio = null;
+
+  Grass.prototype._windOrientation = null;
+
+  Grass.prototype._windLength = null;
+
+  Grass.prototype._windDisplacementTexture = null;
+
+  Grass.prototype._lastProjectedMouse = {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0
+  };
 
   Grass.prototype._sign = 1;
 
@@ -433,6 +461,7 @@ Grass = (function(_super) {
     this._texture = document.getElementById("texture-noise");
     this._projector = new THREE.Projector();
     this._vProjector = new THREE.Vector3();
+    this._displacementData = new WindDisplacementData(-w >> 1, 0, w >> 1, -h);
     THREE.Object3D.call(this);
     this._generateBlades();
     this._createGrass();
@@ -443,6 +472,7 @@ Grass = (function(_super) {
     this._colors = [];
     this._windRatio = [];
     this._blades = new THREE.Geometry();
+    this._vectors = [];
     baseColor = new THREE.Color(0x3d5d0a);
     availableColors = [new THREE.Color(0x53dc23), new THREE.Color(0xb3dc23), new THREE.Color(0x23dc46), new THREE.Color(0x74ff2f)];
     lengthAvailableColors = availableColors.length;
@@ -459,6 +489,7 @@ Grass = (function(_super) {
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
         blade = new GrassBlade(px, 0, pz);
+        this._vectors.push(new WindVectorData(px, pz));
         geo = blade.geometry;
         _ref = geo.vertices;
         for (_k = 0, _len = _ref.length; _k < _len; _k++) {
@@ -504,6 +535,12 @@ Grass = (function(_super) {
     };
     this._attributes.aColor.value = this._colors;
     this._attributes.aWindRatio.value = this._windRatio;
+    this._attributes.aWindOrientation.value = this._windOrientation = [];
+    this._attributes.aWindLength.value = this._windLength = [];
+    this._uniforms.diffuse.value = new THREE.Color(0x084820);
+    this._uniforms.ambient.value = new THREE.Color(0xffea00);
+    this._windDisplacementTexture = new THREE.Texture(this._displacementData.canvas);
+    this._uniforms.uWindDisplacement.value = this._windDisplacementTexture;
     this._uniforms.uOffsetX.value = 0.0;
     this._uniforms.uZoneW.value = this.w >> 1;
     this._uniforms.uFloorW.value = this.w;
@@ -513,7 +550,14 @@ Grass = (function(_super) {
     this._uniforms.uWindMin.value = new THREE.Vector2(0, 0);
     this._uniforms.uWindSize.value = new THREE.Vector2(60, 60);
     this._uniforms.uWindDirection.value = new THREE.Vector3(20, 5, 20);
+    console.log(this.convertToRange(0, 0, 1, -1, 1));
+    console.log(this.convertToRange(.5, 0, 1, -1, 1));
+    console.log(this.convertToRange(1, 0, 1, -1, 1));
     return material = new THREE.ShaderMaterial(params);
+  };
+
+  Grass.prototype.convertToRange = function(x, a1, a2, b1, b2) {
+    return ((x - a1) / (a2 - a1)) * (b2 - b1) + b1;
   };
 
   Grass.prototype.update = function() {
@@ -534,7 +578,9 @@ Grass = (function(_super) {
     pos.z = this._vProjector.z + (camPos.z - this._vProjector.z) * m;
     this._uniforms.uMousePos.value.x = pos.x;
     this._uniforms.uMousePos.value.y = pos.y;
-    return this._uniforms.uMousePos.value.z = pos.z;
+    this._uniforms.uMousePos.value.z = pos.z;
+    this._displacementData.update(pos.x, pos.z);
+    return this._windDisplacementTexture.needsUpdate = true;
   };
 
   return Grass;
@@ -659,6 +705,175 @@ HeightData = (function() {
 
 })();
 
+var WindDisplacementData;
+
+WindDisplacementData = (function() {
+  WindDisplacementData.prototype._xMin = 1.0;
+
+  WindDisplacementData.prototype._yMin = 1.0;
+
+  WindDisplacementData.prototype._xMax = 1.0;
+
+  WindDisplacementData.prototype._yMax = 1.0;
+
+  WindDisplacementData.prototype.canvas = null;
+
+  WindDisplacementData.prototype._size = 0;
+
+  WindDisplacementData.prototype._ctx = null;
+
+  WindDisplacementData.prototype._textDisplacement = null;
+
+  WindDisplacementData.prototype._textDisplacementW = 0;
+
+  WindDisplacementData.prototype._textDisplacementH = 0;
+
+  WindDisplacementData.prototype._fillStyle = "rgba( 127, 127, 255, .135 )";
+
+  WindDisplacementData.prototype._pOrientation = {
+    x: 0.0,
+    y: 0.0
+  };
+
+  WindDisplacementData.prototype._orientation = 0.0;
+
+  WindDisplacementData.prototype._orientationTo = 0.0;
+
+  WindDisplacementData.prototype._lastX = 0.0;
+
+  WindDisplacementData.prototype._lastY = 0.0;
+
+  function WindDisplacementData(_xMin, _yMin, _xMax, _yMax) {
+    this._xMin = _xMin;
+    this._yMin = _yMin;
+    this._xMax = _xMax;
+    this._yMax = _yMax;
+    this.canvas = document.getElementById("map-displacement");
+    this._size = this.canvas.width;
+    this._ctx = this.canvas.getContext("2d");
+    this._ctx.fillStyle = "rgba( 127, 127, 255, 1 )";
+    this._ctx.fillRect(0, 0, this._size, this._size);
+    this._textDisplacement = document.getElementById("texture-displacement");
+    this._textDisplacementW = this._textDisplacement.width;
+    this._textDisplacementH = this._textDisplacement.height;
+  }
+
+  WindDisplacementData.prototype.update = function(x, y) {
+    var a, dist, dx, dy, newOrientation;
+    x = this._scaleX(x);
+    y = this._scaleY(y);
+    dx = x - this._pOrientation.x;
+    dy = y - this._pOrientation.y;
+    this._pOrientation.x += dx * .1;
+    this._pOrientation.y += dy * .1;
+    dx = x - this._pOrientation.x;
+    dy = y - this._pOrientation.y;
+    dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist <= 8) {
+      a = Math.atan2(dy, dx) + Math.PI;
+      this._pOrientation.x = x + Math.cos(a) * 8;
+      this._pOrientation.y = y + Math.sin(a) * 8;
+      dx = x - this._pOrientation.x;
+      dy = y - this._pOrientation.y;
+    }
+    newOrientation = Math.atan2(dy, dx);
+    while (newOrientation - this._orientation > Math.PI) {
+      this._orientation += Math.PI * 2;
+    }
+    while (newOrientation - this._orientation < -Math.PI) {
+      this._orientation -= Math.PI * 2;
+    }
+    this._orientation += (newOrientation - this._orientation) * .1;
+    this._ctx.fillStyle = this._fillStyle;
+    this._ctx.fillRect(0, 0, this._size, this._size);
+    this._ctx.save();
+    this._ctx.translate(this._pOrientation.x, this._pOrientation.y);
+    this._ctx.rotate(this._orientation);
+    this._ctx.drawImage(this._textDisplacement, -this._textDisplacementW >> 1, -this._textDisplacementH >> 1);
+    this._ctx.restore();
+    this._lastX = x;
+    return this._lastY = y;
+  };
+
+  WindDisplacementData.prototype._scaleX = function(value) {
+    var percent, xMax, xMin;
+    xMin = 0 - this._xMin;
+    xMax = xMin + this._xMax;
+    value += xMin;
+    if (value < 0) {
+      value = 0;
+    }
+    if (value > xMax) {
+      value = xMax;
+    }
+    percent = value / xMax;
+    return percent * this._size;
+  };
+
+  WindDisplacementData.prototype._scaleY = function(value) {
+    var percent, yMax, yMin;
+    yMin = 0 - this._yMin;
+    yMax = yMin + this._yMax;
+    if (value > 0) {
+      value = 0;
+    }
+    if (value < yMax) {
+      value = yMax;
+    }
+    percent = value / yMax;
+    return percent * this._size;
+  };
+
+  return WindDisplacementData;
+
+})();
+
+var WindVectorData;
+
+WindVectorData = (function() {
+  WindVectorData.prototype.x = 0;
+
+  WindVectorData.prototype.y = 0;
+
+  WindVectorData.prototype.orientation = 0.0;
+
+  WindVectorData.prototype.length = 0.0;
+
+  WindVectorData.prototype.direction = {
+    x: 0.0,
+    y: 0.0
+  };
+
+  WindVectorData.prototype._needUpdate = true;
+
+  function WindVectorData(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  WindVectorData.prototype.add = function(orientation, length, ratio) {
+    this.orientation += (orientation - this.orientation) * ratio;
+    this.length += (length - this.length) * ratio;
+    return this._needUpdate = true;
+  };
+
+  WindVectorData.prototype.update = function() {
+    return this.length += (0.0 - length) * .07;
+  };
+
+  WindVectorData.prototype.getDirection = function() {
+    if (!this._needUpdate) {
+      return this.direction;
+    }
+    this.direction.x = this.x + Math.cos(this.orientation) * this.length;
+    this.direction.y = this.y + Math.sin(this.orientation) * this.length;
+    return this.direction;
+  };
+
+  return WindVectorData;
+
+})();
+
 var EngineSingleton, engine;
 
 EngineSingleton = (function() {
@@ -690,7 +905,7 @@ EngineSingleton = (function() {
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(0, 250, 500);
+      this.camera.position.set(0, 300, 250);
       this.camera.lookAt(new THREE.Vector3(0, 200, -1280 / 2));
       this.scene = new THREE.Scene();
       this._initLights();

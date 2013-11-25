@@ -7,13 +7,20 @@ class Grass extends THREE.Object3D
     _texture: null
     _projector: null
     _vProjector: null
+    _displacementData: null
     _cntBlades: null
-    _blades: null    
+    _blades: null   
+    _vectors: null 
 
     _attributes: null
     _uniforms: null
     _colors: null
     _windRatio: null
+    _windOrientation: null
+    _windLength: null
+    _windDisplacementTexture: null
+
+    _lastProjectedMouse: { x: 0.0, y: 0.0, z: 0.0 }
 
     _sign: 1
     _add: 0
@@ -22,6 +29,7 @@ class Grass extends THREE.Object3D
         @_texture = document.getElementById "texture-noise"
         @_projector = new THREE.Projector()
         @_vProjector = new THREE.Vector3()
+        @_displacementData = new WindDisplacementData -w >> 1, 0, w >> 1, -h
 
         THREE.Object3D.call @
 
@@ -32,6 +40,7 @@ class Grass extends THREE.Object3D
         @_colors = []
         @_windRatio = []
         @_blades = new THREE.Geometry()
+        @_vectors = []
 
         baseColor = new THREE.Color 0x3d5d0a
         availableColors = [ 
@@ -58,6 +67,7 @@ class Grass extends THREE.Object3D
         for i in [ 0...step ]
             for j in [ 0...step ]
                 blade = new GrassBlade px, 0, pz
+                @_vectors.push new WindVectorData px, pz
                 geo = blade.geometry
                 for v in geo.vertices
                     if v.y < 10
@@ -98,10 +108,14 @@ class Grass extends THREE.Object3D
 
         @_attributes.aColor.value = @_colors
         @_attributes.aWindRatio.value = @_windRatio
+        @_attributes.aWindOrientation.value = @_windOrientation = []
+        @_attributes.aWindLength.value = @_windLength = []
 
-        # @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
-        # @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
+        @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
+        @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
 
+        @_windDisplacementTexture = new THREE.Texture @_displacementData.canvas
+        @_uniforms.uWindDisplacement.value = @_windDisplacementTexture
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
@@ -113,7 +127,14 @@ class Grass extends THREE.Object3D
         @_uniforms.uWindSize.value = new THREE.Vector2 60, 60
         @_uniforms.uWindDirection.value = new THREE.Vector3 20, 5, 20
 
+        console.log @convertToRange( 0, 0, 1, -1, 1 )
+        console.log @convertToRange( .5, 0, 1, -1, 1 )
+        console.log @convertToRange( 1, 0, 1, -1, 1 )
+
         material = new THREE.ShaderMaterial params
+
+    convertToRange: ( x, a1, a2, b1, b2 ) ->
+        return ((x - a1)/(a2 - a1)) * (b2 - b1) + b1;
 
     update: ->
         if @_add > 256
@@ -138,9 +159,6 @@ class Grass extends THREE.Object3D
         @_uniforms.uMousePos.value.y = pos.y
         @_uniforms.uMousePos.value.z = pos.z
 
-        # for i in [ 0...@_windRatio.length ]
-        #     @_windRatio[ i ] = Math.random() * 2
-        # @_attributes.aWindRatio.value = @_windRatio
-
-        # return
+        @_displacementData.update pos.x, pos.z
+        @_windDisplacementTexture.needsUpdate = true
 
