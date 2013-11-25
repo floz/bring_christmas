@@ -7,9 +7,10 @@ class Grass extends THREE.Object3D
     _texture: null
     _projector: null
     _vProjector: null
-    _displacementDataR: null
-    _displacementDataG: null
-    _displacementDataB: null
+    _displacementData: null
+    _displacementChannelR: null
+    _displacementChannelG: null
+    _displacementChannelB: null
     _cntBlades: null
     _blades: null   
     _vectors: null 
@@ -34,9 +35,13 @@ class Grass extends THREE.Object3D
         @_texture = document.getElementById "texture-noise"
         @_projector = new THREE.Projector()
         @_vProjector = new THREE.Vector3()
-        @_displacementDataR = new WindDisplacementData "map-displacement-r", "texture-displacement-r", -w >> 1, 0, w >> 1, -h
-        @_displacementDataG = new WindDisplacementData "map-displacement-g", "texture-displacement-g", -w >> 1, 0, w >> 1, -h, true
-        @_displacementDataB = new WindDisplacementData "map-displacement-b", "texture-displacement-b", -w >> 1, 0, w >> 1, -h, true
+        @_displacementChannelR = new WindDisplacementChannel "map-displacement-r", "texture-displacement-r",
+        @_displacementChannelG = new WindDisplacementChannel "map-displacement-g", "texture-displacement-g", true
+        @_displacementChannelB = new WindDisplacementChannel "map-displacement-b", "texture-displacement-b", true
+        @_displacementData = new WindDisplacementData -w >> 1, 0, w >> 1, -h
+        @_displacementData.addChannel @_displacementChannelR
+        @_displacementData.addChannel @_displacementChannelG
+        @_displacementData.addChannel @_displacementChannelB
 
         THREE.Object3D.call @
 
@@ -127,9 +132,9 @@ class Grass extends THREE.Object3D
         @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
         @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
 
-        @_windDisplacementRTexture = new THREE.Texture @_displacementDataR.canvas
-        @_windDisplacementGTexture = new THREE.Texture @_displacementDataG.canvas
-        @_windDisplacementBTexture = new THREE.Texture @_displacementDataB.canvas
+        @_windDisplacementRTexture = new THREE.Texture @_displacementChannelR.canvas
+        @_windDisplacementGTexture = new THREE.Texture @_displacementChannelG.canvas
+        @_windDisplacementBTexture = new THREE.Texture @_displacementChannelB.canvas
         @_uniforms.uWindDisplacementR.value = @_windDisplacementRTexture
         @_uniforms.uWindDisplacementG.value = @_windDisplacementGTexture
         @_uniforms.uWindDisplacementB.value = @_windDisplacementBTexture
@@ -174,9 +179,7 @@ class Grass extends THREE.Object3D
         @_uniforms.uMousePos.value.y = pos.y
         @_uniforms.uMousePos.value.z = pos.z
 
-        @_displacementDataR.update pos.x, pos.z
-        @_displacementDataG.update pos.x, pos.z
-        @_displacementDataB.update pos.x, pos.z
+        @_displacementData.update pos.x, pos.z
         @_windDisplacementRTexture.needsUpdate = true
         @_windDisplacementGTexture.needsUpdate = true
         @_windDisplacementBTexture.needsUpdate = true

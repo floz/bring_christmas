@@ -6,69 +6,79 @@ class WindDisplacementData
     _yMax: 1.0
     _canRotate: false
 
-    canvas: null
-    _size: 0
+    _channels: null
+    _size: 256
     _ctx: null
-    _textDisplacement: null
-    _textDisplacementW: 0
-    _textDisplacementH: 0
-    _fillStyle: "rgba( 128, 128, 128, .1 )"
 
     _pOrientation: { x: 0.0, y: 0.0 }
     _orientation: 0.0
-    _orientationTo: 0.0
     _lastX: 0.0
     _lastY: 0.0
 
-    constructor: ( idCanvas, idText, @_xMin, @_yMin, @_xMax, @_yMax, canRotate ) ->
-        @_canRotate = canRotate || false
+    _alpha: 1.0
 
-        @canvas = document.getElementById idCanvas
-        @_size = @canvas.width
-        @_ctx = @canvas.getContext "2d"
-        @_ctx.fillStyle = "rgba( 128, 128, 128, 1 )"
-        @_ctx.fillRect 0, 0, @_size, @_size
+    _speed: 0.0
 
-        @_textDisplacement = document.getElementById idText
-        @_textDisplacementW = @_textDisplacement.width
-        @_textDisplacementH = @_textDisplacement.height
+    constructor: ( @_xMin, @_yMin, @_xMax, @_yMax ) ->
+        @_channels = []
+
+    addChannel: ( channel ) ->
+        @_channels.push channel
 
     update: ( x, y ) ->
         x = @_scaleX x
         y = @_scaleY y
 
-        dx = x - @_pOrientation.x
-        dy = y - @_pOrientation.y
-        @_pOrientation.x += dx * .1
-        @_pOrientation.y += dy * .1
-        dx = x - @_pOrientation.x
-        dy = y - @_pOrientation.y
-        dist = Math.sqrt dx * dx + dy * dy
-        if dist <= 8
-            a = Math.atan2( dy, dx ) + Math.PI
-            @_pOrientation.x = x + Math.cos( a ) * 8
-            @_pOrientation.y = y + Math.sin( a ) * 8
+        channel.fill @_alpha for channel in @_channels
+
+        if @_lastX != x || @_lastY != y
             dx = x - @_pOrientation.x
             dy = y - @_pOrientation.y
+            @_pOrientation.x += dx * .1
+            @_pOrientation.y += dy * .1
+            dx = x - @_pOrientation.x
+            dy = y - @_pOrientation.y
+            dist = Math.sqrt dx * dx + dy * dy
+            if dist <= 8
+                a = Math.atan2( dy, dx ) + Math.PI
+                @_pOrientation.x = x + Math.cos( a ) * 8
+                @_pOrientation.y = y + Math.sin( a ) * 8
+                dx = x - @_pOrientation.x
+                dy = y - @_pOrientation.y
 
-        if @_canRotate
             newOrientation = Math.atan2 dy, dx
             @_orientation += Math.PI * 2 while newOrientation - @_orientation > Math.PI 
             @_orientation -= Math.PI * 2 while newOrientation - @_orientation < -Math.PI
             @_orientation += ( newOrientation - @_orientation ) * .1
 
-        @_ctx.fillStyle = @_fillStyle
-        @_ctx.fillRect 0, 0, @_size, @_size
+            @_drawCanvas()
 
-        if @_lastX != x || @_lastY != y
-            @_ctx.save()
-            @_ctx.translate @_pOrientation.x, @_pOrientation.y
-            @_ctx.rotate @_orientation if @_canRotate
-            @_ctx.drawImage @_textDisplacement, -@_textDisplacementW >> 1, -@_textDisplacementH >> 1
-            @_ctx.restore()
+            @_alpha += ( .05 - @_alpha ) * .075
+
+            dx = x - @_lastX
+            dy = y - @_lastY
+            dist = Math.sqrt dx * dx + dy * dy
+            @_speed += dist * .15
+            @_speed += - @_speed * .05
+        else
+            @_alpha += ( 1 - @_alpha ) * .001
+
+            a = @_orientation
+            @_pOrientation.x += Math.cos( a ) * @_speed
+            @_pOrientation.y += Math.sin( a ) * @_speed
+
+            if @_alpha < .9
+                @_drawCanvas()
+
+            @_speed += - @_speed * .1
+
+        console.log @_speed
 
         @_lastX = x
         @_lastY = y
+
+    _drawCanvas: ->
+        channel.draw @_pOrientation.x, @_pOrientation.y, @_orientation for channel in @_channels
 
     _scaleX: ( value ) ->
         xMin = 0 - @_xMin

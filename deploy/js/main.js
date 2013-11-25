@@ -434,11 +434,13 @@ Grass = (function(_super) {
 
   Grass.prototype._vProjector = null;
 
-  Grass.prototype._displacementDataR = null;
+  Grass.prototype._displacementData = null;
 
-  Grass.prototype._displacementDataG = null;
+  Grass.prototype._displacementChannelR = null;
 
-  Grass.prototype._displacementDataB = null;
+  Grass.prototype._displacementChannelG = null;
+
+  Grass.prototype._displacementChannelB = null;
 
   Grass.prototype._cntBlades = null;
 
@@ -483,9 +485,12 @@ Grass = (function(_super) {
     this._texture = document.getElementById("texture-noise");
     this._projector = new THREE.Projector();
     this._vProjector = new THREE.Vector3();
-    this._displacementDataR = new WindDisplacementData("map-displacement-r", "texture-displacement-r", -w >> 1, 0, w >> 1, -h);
-    this._displacementDataG = new WindDisplacementData("map-displacement-g", "texture-displacement-g", -w >> 1, 0, w >> 1, -h, true);
-    this._displacementDataB = new WindDisplacementData("map-displacement-b", "texture-displacement-b", -w >> 1, 0, w >> 1, -h, true);
+    this._displacementChannelR = new WindDisplacementChannel("map-displacement-r", "texture-displacement-r", this._displacementChannelG = new WindDisplacementChannel("map-displacement-g", "texture-displacement-g", true));
+    this._displacementChannelB = new WindDisplacementChannel("map-displacement-b", "texture-displacement-b", true);
+    this._displacementData = new WindDisplacementData(-w >> 1, 0, w >> 1, -h);
+    this._displacementData.addChannel(this._displacementChannelR);
+    this._displacementData.addChannel(this._displacementChannelG);
+    this._displacementData.addChannel(this._displacementChannelB);
     THREE.Object3D.call(this);
     this._generateBlades();
     this._createGrass();
@@ -569,9 +574,9 @@ Grass = (function(_super) {
     this._attributes.aPosition.value = this._positions;
     this._uniforms.diffuse.value = new THREE.Color(0x084820);
     this._uniforms.ambient.value = new THREE.Color(0xffea00);
-    this._windDisplacementRTexture = new THREE.Texture(this._displacementDataR.canvas);
-    this._windDisplacementGTexture = new THREE.Texture(this._displacementDataG.canvas);
-    this._windDisplacementBTexture = new THREE.Texture(this._displacementDataB.canvas);
+    this._windDisplacementRTexture = new THREE.Texture(this._displacementChannelR.canvas);
+    this._windDisplacementGTexture = new THREE.Texture(this._displacementChannelG.canvas);
+    this._windDisplacementBTexture = new THREE.Texture(this._displacementChannelB.canvas);
     this._uniforms.uWindDisplacementR.value = this._windDisplacementRTexture;
     this._uniforms.uWindDisplacementG.value = this._windDisplacementGTexture;
     this._uniforms.uWindDisplacementB.value = this._windDisplacementBTexture;
@@ -612,9 +617,7 @@ Grass = (function(_super) {
     this._uniforms.uMousePos.value.x = pos.x;
     this._uniforms.uMousePos.value.y = pos.y;
     this._uniforms.uMousePos.value.z = pos.z;
-    this._displacementDataR.update(pos.x, pos.z);
-    this._displacementDataG.update(pos.x, pos.z);
-    this._displacementDataB.update(pos.x, pos.z);
+    this._displacementData.update(pos.x, pos.z);
     this._windDisplacementRTexture.needsUpdate = true;
     this._windDisplacementGTexture.needsUpdate = true;
     return this._windDisplacementBTexture.needsUpdate = true;
@@ -742,6 +745,53 @@ HeightData = (function() {
 
 })();
 
+var WindDisplacementChannel;
+
+WindDisplacementChannel = (function() {
+  WindDisplacementChannel.prototype.canvas = null;
+
+  WindDisplacementChannel.prototype._canRotate = null;
+
+  WindDisplacementChannel.prototype._size = 0;
+
+  WindDisplacementChannel.prototype._ctx = null;
+
+  WindDisplacementChannel.prototype._textDisplacement = null;
+
+  WindDisplacementChannel.prototype._textDisplacementW = 0;
+
+  WindDisplacementChannel.prototype._textDisplacementH = 0;
+
+  function WindDisplacementChannel(idCanvas, idText, canRotate) {
+    this.canvas = document.getElementById(idCanvas);
+    this._canRotate = canRotate || false;
+    this._size = this.canvas.width;
+    this._ctx = this.canvas.getContext("2d");
+    this._ctx.fillStyle = "rgba( 128, 128, 128, 1 )";
+    this._textDisplacement = document.getElementById(idText);
+    this._textDisplacementW = this._textDisplacement.width;
+    this._textDisplacementH = this._textDisplacement.height;
+  }
+
+  WindDisplacementChannel.prototype.fill = function(alpha) {
+    this._ctx.fillStyle = "rgba( 128, 128, 128, " + alpha + ")";
+    return this._ctx.fillRect(0, 0, this._size, this._size);
+  };
+
+  WindDisplacementChannel.prototype.draw = function(x, y, orientation) {
+    this._ctx.save();
+    this._ctx.translate(x, y);
+    if (this._canRotate) {
+      this._ctx.rotate(orientation);
+    }
+    this._ctx.drawImage(this._textDisplacement, -this._textDisplacementW >> 1, -this._textDisplacementH >> 1);
+    return this._ctx.restore();
+  };
+
+  return WindDisplacementChannel;
+
+})();
+
 var WindDisplacementData;
 
 WindDisplacementData = (function() {
@@ -755,19 +805,11 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._canRotate = false;
 
-  WindDisplacementData.prototype.canvas = null;
+  WindDisplacementData.prototype._channels = null;
 
-  WindDisplacementData.prototype._size = 0;
+  WindDisplacementData.prototype._size = 256;
 
   WindDisplacementData.prototype._ctx = null;
-
-  WindDisplacementData.prototype._textDisplacement = null;
-
-  WindDisplacementData.prototype._textDisplacementW = 0;
-
-  WindDisplacementData.prototype._textDisplacementH = 0;
-
-  WindDisplacementData.prototype._fillStyle = "rgba( 128, 128, 128, .1 )";
 
   WindDisplacementData.prototype._pOrientation = {
     x: 0.0,
@@ -776,47 +818,50 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._orientation = 0.0;
 
-  WindDisplacementData.prototype._orientationTo = 0.0;
-
   WindDisplacementData.prototype._lastX = 0.0;
 
   WindDisplacementData.prototype._lastY = 0.0;
 
-  function WindDisplacementData(idCanvas, idText, _xMin, _yMin, _xMax, _yMax, canRotate) {
+  WindDisplacementData.prototype._alpha = 1.0;
+
+  WindDisplacementData.prototype._speed = 0.0;
+
+  function WindDisplacementData(_xMin, _yMin, _xMax, _yMax) {
     this._xMin = _xMin;
     this._yMin = _yMin;
     this._xMax = _xMax;
     this._yMax = _yMax;
-    this._canRotate = canRotate || false;
-    this.canvas = document.getElementById(idCanvas);
-    this._size = this.canvas.width;
-    this._ctx = this.canvas.getContext("2d");
-    this._ctx.fillStyle = "rgba( 128, 128, 128, 1 )";
-    this._ctx.fillRect(0, 0, this._size, this._size);
-    this._textDisplacement = document.getElementById(idText);
-    this._textDisplacementW = this._textDisplacement.width;
-    this._textDisplacementH = this._textDisplacement.height;
+    this._channels = [];
   }
 
+  WindDisplacementData.prototype.addChannel = function(channel) {
+    return this._channels.push(channel);
+  };
+
   WindDisplacementData.prototype.update = function(x, y) {
-    var a, dist, dx, dy, newOrientation;
+    var a, channel, dist, dx, dy, newOrientation, _i, _len, _ref;
     x = this._scaleX(x);
     y = this._scaleY(y);
-    dx = x - this._pOrientation.x;
-    dy = y - this._pOrientation.y;
-    this._pOrientation.x += dx * .1;
-    this._pOrientation.y += dy * .1;
-    dx = x - this._pOrientation.x;
-    dy = y - this._pOrientation.y;
-    dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist <= 8) {
-      a = Math.atan2(dy, dx) + Math.PI;
-      this._pOrientation.x = x + Math.cos(a) * 8;
-      this._pOrientation.y = y + Math.sin(a) * 8;
+    _ref = this._channels;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      channel = _ref[_i];
+      channel.fill(this._alpha);
+    }
+    if (this._lastX !== x || this._lastY !== y) {
       dx = x - this._pOrientation.x;
       dy = y - this._pOrientation.y;
-    }
-    if (this._canRotate) {
+      this._pOrientation.x += dx * .1;
+      this._pOrientation.y += dy * .1;
+      dx = x - this._pOrientation.x;
+      dy = y - this._pOrientation.y;
+      dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist <= 8) {
+        a = Math.atan2(dy, dx) + Math.PI;
+        this._pOrientation.x = x + Math.cos(a) * 8;
+        this._pOrientation.y = y + Math.sin(a) * 8;
+        dx = x - this._pOrientation.x;
+        dy = y - this._pOrientation.y;
+      }
       newOrientation = Math.atan2(dy, dx);
       while (newOrientation - this._orientation > Math.PI) {
         this._orientation += Math.PI * 2;
@@ -825,20 +870,37 @@ WindDisplacementData = (function() {
         this._orientation -= Math.PI * 2;
       }
       this._orientation += (newOrientation - this._orientation) * .1;
-    }
-    this._ctx.fillStyle = this._fillStyle;
-    this._ctx.fillRect(0, 0, this._size, this._size);
-    if (this._lastX !== x || this._lastY !== y) {
-      this._ctx.save();
-      this._ctx.translate(this._pOrientation.x, this._pOrientation.y);
-      if (this._canRotate) {
-        this._ctx.rotate(this._orientation);
+      this._drawCanvas();
+      this._alpha += (.05 - this._alpha) * .075;
+      dx = x - this._lastX;
+      dy = y - this._lastY;
+      dist = Math.sqrt(dx * dx + dy * dy);
+      this._speed += dist * .15;
+      this._speed += -this._speed * .05;
+    } else {
+      this._alpha += (1 - this._alpha) * .001;
+      a = this._orientation;
+      this._pOrientation.x += Math.cos(a) * this._speed;
+      this._pOrientation.y += Math.sin(a) * this._speed;
+      if (this._alpha < .9) {
+        this._drawCanvas();
       }
-      this._ctx.drawImage(this._textDisplacement, -this._textDisplacementW >> 1, -this._textDisplacementH >> 1);
-      this._ctx.restore();
+      this._speed += -this._speed * .1;
     }
+    console.log(this._speed);
     this._lastX = x;
     return this._lastY = y;
+  };
+
+  WindDisplacementData.prototype._drawCanvas = function() {
+    var channel, _i, _len, _ref, _results;
+    _ref = this._channels;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      channel = _ref[_i];
+      _results.push(channel.draw(this._pOrientation.x, this._pOrientation.y, this._orientation));
+    }
+    return _results;
   };
 
   WindDisplacementData.prototype._scaleX = function(value) {
