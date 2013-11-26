@@ -1,22 +1,51 @@
 class Grass extends THREE.Object3D
 
+    _floor: null
     w: 0
     h: 0
 
     _texture: null
+    _projector: null
+    _vProjector: null
+    _displacementData: null
+    _displacementChannelR: null
+    _displacementChannelG: null
+    _displacementChannelB: null
+    _colorChannel: null
     _cntBlades: null
-    _blades: null    
+    _blades: null   
+    _vectors: null 
 
     _attributes: null
     _uniforms: null
     _colors: null
+    _positions: null
     _windRatio: null
+    _windOrientation: null
+    _windLength: null
+    _windDisplacementRTexture: null
+    _windDisplacementGTexture: null
+    _windDisplacementBTexture: null
+    _colorChannelTexture: null
+
+    _lastProjectedMouse: { x: 0.0, y: 0.0, z: 0.0 }
 
     _sign: 1
     _add: 0
 
-    constructor: ( @w, @h ) ->
+    constructor: ( @_floor, @w, @h ) ->
         @_texture = document.getElementById "texture-noise"
+        @_projector = new THREE.Projector()
+        @_vProjector = new THREE.Vector3()
+        @_displacementChannelR = new WindDisplacementChannel "map-displacement-r", "texture-displacement-r",
+        @_displacementChannelG = new WindDisplacementChannel "map-displacement-g", "texture-displacement-g", true
+        @_displacementChannelB = new WindDisplacementChannel "map-displacement-b", "texture-displacement-b", true
+        @_colorChannel = new ColorChannel "map-color", "texture-color"
+        @_displacementData = new WindDisplacementData -w >> 1, 0, w >> 1, -h
+        @_displacementData.addChannel @_displacementChannelR
+        @_displacementData.addChannel @_displacementChannelG
+        @_displacementData.addChannel @_displacementChannelB
+        @_displacementData.addChannel @_colorChannel
 
         THREE.Object3D.call @
 
@@ -25,8 +54,10 @@ class Grass extends THREE.Object3D
 
     _generateBlades: ->
         @_colors = []
+        @_positions = []
         @_windRatio = []
         @_blades = new THREE.Geometry()
+        @_vectors = []
 
         baseColor = new THREE.Color 0x3d5d0a
         availableColors = [ 
@@ -46,6 +77,7 @@ class Grass extends THREE.Object3D
         zMin = 0
         zMax = @h
 
+        heightValue = 0
         px = xMin
         pz = zMin
         vx = @w / step
@@ -53,6 +85,8 @@ class Grass extends THREE.Object3D
         for i in [ 0...step ]
             for j in [ 0...step ]
                 blade = new GrassBlade px, 0, pz
+                @_vectors.push new WindVectorData px, pz
+                heightValue = HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
                 geo = blade.geometry
                 for v in geo.vertices
                     if v.y < 10
@@ -61,7 +95,8 @@ class Grass extends THREE.Object3D
                     else
                         @_colors[ idx ] = availableColors[ Math.random() * lengthAvailableColors >> 0 ]
                         @_windRatio[ idx ] = 1.0
-                    v.y += HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
+                    v.y += heightValue
+                    @_positions[ idx ] = new THREE.Vector3 px, 0, pz + heightValue
                     idx++
 
                 THREE.GeometryUtils.merge @_blades, blade
@@ -93,21 +128,38 @@ class Grass extends THREE.Object3D
 
         @_attributes.aColor.value = @_colors
         @_attributes.aWindRatio.value = @_windRatio
+        @_attributes.aWindOrientation.value = @_windOrientation = []
+        @_attributes.aWindLength.value = @_windLength = []
+        @_attributes.aPosition.value = @_positions
 
-        @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
-        @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
+        # @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
+        # @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
 
+        @_windDisplacementRTexture = new THREE.Texture @_displacementChannelR.canvas
+        @_windDisplacementGTexture = new THREE.Texture @_displacementChannelG.canvas
+        @_windDisplacementBTexture = new THREE.Texture @_displacementChannelB.canvas
+        @_colorChannelTexture = new THREE.Texture @_colorChannel.canvas
+        @_uniforms.uWindDisplacementR.value = @_windDisplacementRTexture
+        @_uniforms.uWindDisplacementG.value = @_windDisplacementGTexture
+        @_uniforms.uWindDisplacementB.value = @_windDisplacementBTexture
+        @_uniforms.uColorChannel.value = @_colorChannelTexture
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
+        @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
 
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src
         @_uniforms.uWindScale.value = 1
         @_uniforms.uWindMin.value = new THREE.Vector2 0, 0
         @_uniforms.uWindSize.value = new THREE.Vector2 60, 60
-        @_uniforms.uWindDirection.value = new THREE.Vector3 20, 5, 20
+        @_uniforms.uWindDirection.value = new THREE.Vector3 13, 5, 13
 
         material = new THREE.ShaderMaterial params
+        material.side = THREE.DoubleSide
+        return material
+
+    convertToRange: ( x, a1, a2, b1, b2 ) ->
+        return ((x - a1)/(a2 - a1)) * (b2 - b1) + b1;
 
     update: ->
         if @_add > 256
@@ -115,9 +167,25 @@ class Grass extends THREE.Object3D
         @_add += 1
 
         @_uniforms.uOffsetX.value = @_add
-        # for i in [ 0...@_windRatio.length ]
-        #     @_windRatio[ i ] = Math.random() * 2
-        # @_attributes.aWindRatio.value = @_windRatio
-        
-        # return
 
+        @_vProjector.x = ( stage.mouse.x / stage.size.w ) * 2 - 1
+        @_vProjector.y = -( stage.mouse.y / stage.size.h ) * 2 + 1
+        @_vProjector.z = 1
+        @_projector.unprojectVector @_vProjector, engine.camera
+
+        camPos = engine.camera.position
+        m = @_vProjector.y / ( @_vProjector.y - camPos.y )
+
+        pos = new THREE.Vector3()
+        pos.x = @_vProjector.x + ( camPos.x - @_vProjector.x ) * m
+        pos.z = @_vProjector.z + ( camPos.z - @_vProjector.z ) * m
+
+        @_uniforms.uMousePos.value.x = pos.x
+        @_uniforms.uMousePos.value.y = pos.y
+        @_uniforms.uMousePos.value.z = pos.z
+
+        @_displacementData.update pos.x, pos.z
+        @_windDisplacementRTexture.needsUpdate = true
+        @_windDisplacementGTexture.needsUpdate = true
+        @_windDisplacementBTexture.needsUpdate = true
+        @_colorChannelTexture.needsUpdate = true

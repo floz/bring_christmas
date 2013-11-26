@@ -11,3 +11,11 @@ body {
 #textures {
   display: none;
 }
+
+/* line 13, ../../src/sass/main.scss */
+#maps {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}

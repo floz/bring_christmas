@@ -16,6 +16,20 @@
     <div id="textures">
       <img id="texture-noise" class="texture" src="img/map_noise_pow2.png" width="256" height="128"/>
       <img id="texture-height" class="texture" src="img/map_height.png" width="128" height="128"/>
+      <img id="texture-displacement-r" class="texture" src="img/normal_map_r2.png" width="64" height="64" />
+      <img id="texture-displacement-g" class="texture" src="img/normal_map_g.png" width
+      ="64" height="64" />
+      <img id="texture-displacement-b" class="texture" src="img/normal_map_b.png" width
+      ="64" height="64" />
+      <img id="texture-color" class="texture" src="img/color_winter.png" width
+      ="64" height="64" />
+    </div>
+
+    <div id="maps">
+      <canvas id="map-displacement-r" width="256" height="256"></canvas>
+      <canvas id="map-displacement-g" width="256" height="256"></canvas>
+      <canvas id="map-displacement-b" width="256" height="256"></canvas>
+      <canvas id="map-color" width="256" height="256"></canvas>
     </div>
 
     <script type="text/javascript" src="js/vendor/RequestAnimationFrame.js"></script>

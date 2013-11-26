@@ -4,9 +4,21 @@ class WindShader
         aColor: {
             type: "c"
             value: null
-        },
+        }
         aWindRatio: {
             type: "f"
+            value: null
+        }
+        aWindOrientation: {
+            type: "f"
+            value: null
+        }
+        aWindLength: {
+            type: "f"
+            value: null
+        }
+        aPosition: {
+            type: "v3"
             value: null
         }
     }
@@ -31,6 +43,11 @@ class WindShader
                 "uWindMin": { type: "v2", value: null }
                 "uWindSize": { type: "v2", value: null }
                 "uWindDirection": { type: "v3", value: null }
+                "uMousePos": { type: "v3", value: null }
+                "uWindDisplacementR": { type: "t", value: null }
+                "uWindDisplacementG": { type: "t", value: null }
+                "uWindDisplacementB": { type: "t", value: null }
+                "uColorChannel": { type: "t", value: null }
             }
 
         ] )
@@ -41,19 +58,27 @@ class WindShader
 
             "attribute vec3 aColor;"
             "attribute float aWindRatio;"
+            "attribute float aWindOrientation;"
+            "attribute float aWindLength;"
+            "attribute vec3 aPosition;"
 
             "uniform float uOffsetX;"
             "uniform float uZoneW;"
             "uniform float uFloorW;"
+            "uniform vec3 uMousePos;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
             "uniform vec2 uWindMin;"
             "uniform vec2 uWindSize;"
             "uniform vec3 uWindDirection;"
+            "uniform sampler2D uWindDisplacementR;"
+            "uniform sampler2D uWindDisplacementG;"
+            "uniform sampler2D uWindDisplacementB;"
 
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
             "varying vec3 vColor;"
+            "varying vec2 vPercent;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -69,6 +94,10 @@ class WindShader
             THREE.ShaderChunk[ "morphtarget_pars_vertex" ]
             THREE.ShaderChunk[ "skinning_pars_vertex" ]
             THREE.ShaderChunk[ "shadowmap_pars_vertex" ]
+
+            "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {"
+                "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;"
+            "}"
 
             "void main() {"
 
@@ -114,10 +143,36 @@ class WindShader
                     "float windFactor = aWindRatio;"
                     "float windMod = ( 1.0 - vWindForce ) * windFactor;"
 
+                    ##
+
+                    # "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
+                    # "float dx = uMousePos.x - wpos.x;"
+                    # "float dz = uMousePos.z - wpos.z;"
+                    # "float dist = sqrt( dx * dx + dz * dz );"
+                    # "if( dist > 100.0 )"
+                    #     "dist = 100.0;"
+                    # "dist = 100.0 - dist;"
+                    # "dist *= 4.0;"
+
+                    ##
+
+                    "vec2 src = vec2( 0, 1 );"
+                    "vec2 dest = vec2( -1, 1 );"
+
+                    "vec2 percent = vec2( aPosition.x / 1280.0, aPosition.z / 1280.0 );"
+                    "float r = texture2D( uWindDisplacementR, percent ).r;"
+                    "r = convertToRange( r, src, dest );"
+                    "float g = texture2D( uWindDisplacementG, percent ).g;"
+                    "g = convertToRange( g, src, dest );"
+                    "float b = texture2D( uWindDisplacementB, percent ).b;"
+                    "b = convertToRange( b, src, dest );"
+
                     "vec4 pos = vec4( position, 1.0 );"
-                    "pos.x += windMod * uWindDirection.x;"
-                    "pos.y += windMod * uWindDirection.y;"
-                    "pos.z += windMod * uWindDirection.z;"
+                    "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;"
+                    "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;"
+                    "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;"
+
+                    "vPercent = percent;"
 
                     "mvPosition = modelViewMatrix * pos;"
 
@@ -138,10 +193,13 @@ class WindShader
         fragmentShader: [
 
             "uniform float opacity;"
+            # "uniform sampler2D uMapColor;"
+            "uniform sampler2D uColorChannel;"
 
             "varying vec3 vLightFront;"
             "varying vec3 vColor;"
             "varying vec4 vDebugColor;"
+            "varying vec2 vPercent;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -159,7 +217,15 @@ class WindShader
 
             "void main() {"
 
-                "gl_FragColor = vec4( vColor, opacity );"
+                "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;"
+                "vec3 newColor = vColor;"
+                "newColor.r = newColor.r + ( winterColor.r - newColor.r ) * winterColor.a;"
+                "newColor.g = newColor.g + ( winterColor.g - newColor.g ) * winterColor.a;"
+                "newColor.b = newColor.b + ( winterColor.b - newColor.b ) * winterColor.a;"
+                "gl_FragColor = vec4( newColor.rgb, opacity );"
+
+                # "gl_FragColor = vec4( newColor, opacity );"
+                # "gl_FragColor = vec4( vec3( 1.0 ), opacity );"
 
                 THREE.ShaderChunk[ "map_fragment" ]
                 THREE.ShaderChunk[ "alphatest_fragment" ]
