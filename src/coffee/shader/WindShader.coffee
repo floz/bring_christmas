@@ -47,6 +47,7 @@ class WindShader
                 "uWindDisplacementR": { type: "t", value: null }
                 "uWindDisplacementG": { type: "t", value: null }
                 "uWindDisplacementB": { type: "t", value: null }
+                "uColorChannel": { type: "t", value: null }
             }
 
         ] )
@@ -77,6 +78,7 @@ class WindShader
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
             "varying vec3 vColor;"
+            "varying vec2 vPercent;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -170,6 +172,8 @@ class WindShader
                     "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;"
                     "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;"
 
+                    "vPercent = percent;"
+
                     "mvPosition = modelViewMatrix * pos;"
 
                 "#endif"
@@ -189,10 +193,13 @@ class WindShader
         fragmentShader: [
 
             "uniform float opacity;"
+            # "uniform sampler2D uMapColor;"
+            "uniform sampler2D uColorChannel;"
 
             "varying vec3 vLightFront;"
             "varying vec3 vColor;"
             "varying vec4 vDebugColor;"
+            "varying vec2 vPercent;"
 
             "#ifdef DOUBLE_SIDED"
 
@@ -210,7 +217,14 @@ class WindShader
 
             "void main() {"
 
-                "gl_FragColor = vec4( vColor, opacity );"
+                "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;"
+                "vec3 newColor = vColor;"
+                "newColor.r = newColor.r + ( winterColor.r - newColor.r ) * winterColor.a;"
+                "newColor.g = newColor.g + ( winterColor.g - newColor.g ) * winterColor.a;"
+                "newColor.b = newColor.b + ( winterColor.b - newColor.b ) * winterColor.a;"
+                "gl_FragColor = vec4( newColor.rgb, opacity );"
+
+                # "gl_FragColor = vec4( newColor, opacity );"
                 # "gl_FragColor = vec4( vec3( 1.0 ), opacity );"
 
                 THREE.ShaderChunk[ "map_fragment" ]

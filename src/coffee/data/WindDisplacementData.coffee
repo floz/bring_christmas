@@ -51,9 +51,14 @@ class WindDisplacementData
             @_orientation -= Math.PI * 2 while newOrientation - @_orientation < -Math.PI
             @_orientation += ( newOrientation - @_orientation ) * .1
 
-            @_drawCanvas()
+            @_alpha += ( .05 - @_alpha ) * .05
+            if @_alpha > .5
+                @_drawCanvas()
+                channel.fill @_alpha for channel in @_channels
+            else
+                channel.fill @_alpha for channel in @_channels
+                @_drawCanvas()
 
-            @_alpha += ( .05 - @_alpha ) * .075
 
             dx = x - @_lastX
             dy = y - @_lastY
@@ -61,7 +66,7 @@ class WindDisplacementData
             @_speed += dist * .05
             @_speed += - @_speed * .05
         else
-            @_alpha += ( 1 - @_alpha ) * .05
+            @_alpha += ( 1 - @_alpha ) * .025
 
             a = @_orientation
             @_pOrientation.x += Math.cos( a ) * @_speed

@@ -11,6 +11,7 @@ class Grass extends THREE.Object3D
     _displacementChannelR: null
     _displacementChannelG: null
     _displacementChannelB: null
+    _colorChannel: null
     _cntBlades: null
     _blades: null   
     _vectors: null 
@@ -25,6 +26,7 @@ class Grass extends THREE.Object3D
     _windDisplacementRTexture: null
     _windDisplacementGTexture: null
     _windDisplacementBTexture: null
+    _colorChannelTexture: null
 
     _lastProjectedMouse: { x: 0.0, y: 0.0, z: 0.0 }
 
@@ -38,10 +40,12 @@ class Grass extends THREE.Object3D
         @_displacementChannelR = new WindDisplacementChannel "map-displacement-r", "texture-displacement-r",
         @_displacementChannelG = new WindDisplacementChannel "map-displacement-g", "texture-displacement-g", true
         @_displacementChannelB = new WindDisplacementChannel "map-displacement-b", "texture-displacement-b", true
+        @_colorChannel = new ColorChannel "map-color", "texture-color"
         @_displacementData = new WindDisplacementData -w >> 1, 0, w >> 1, -h
         @_displacementData.addChannel @_displacementChannelR
         @_displacementData.addChannel @_displacementChannelG
         @_displacementData.addChannel @_displacementChannelB
+        @_displacementData.addChannel @_colorChannel
 
         THREE.Object3D.call @
 
@@ -103,7 +107,6 @@ class Grass extends THREE.Object3D
             pz += vz
 
         @_blades.computeFaceNormals()
-        console.log @_blades.vertices
 
     _createGrass: ->
         mesh = new THREE.Mesh @_blades, @_getWindMaterial()
@@ -129,15 +132,17 @@ class Grass extends THREE.Object3D
         @_attributes.aWindLength.value = @_windLength = []
         @_attributes.aPosition.value = @_positions
 
-        @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
-        @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
+        # @_uniforms.diffuse.value = new THREE.Color( 0x084820 )
+        # @_uniforms.ambient.value = new THREE.Color( 0xffea00 )
 
         @_windDisplacementRTexture = new THREE.Texture @_displacementChannelR.canvas
         @_windDisplacementGTexture = new THREE.Texture @_displacementChannelG.canvas
         @_windDisplacementBTexture = new THREE.Texture @_displacementChannelB.canvas
+        @_colorChannelTexture = new THREE.Texture @_colorChannel.canvas
         @_uniforms.uWindDisplacementR.value = @_windDisplacementRTexture
         @_uniforms.uWindDisplacementG.value = @_windDisplacementGTexture
         @_uniforms.uWindDisplacementB.value = @_windDisplacementBTexture
+        @_uniforms.uColorChannel.value = @_colorChannelTexture
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
@@ -147,7 +152,7 @@ class Grass extends THREE.Object3D
         @_uniforms.uWindScale.value = 1
         @_uniforms.uWindMin.value = new THREE.Vector2 0, 0
         @_uniforms.uWindSize.value = new THREE.Vector2 60, 60
-        @_uniforms.uWindDirection.value = new THREE.Vector3 20, 5, 20
+        @_uniforms.uWindDirection.value = new THREE.Vector3 13, 5, 13
 
         material = new THREE.ShaderMaterial params
         material.side = THREE.DoubleSide
@@ -183,4 +188,4 @@ class Grass extends THREE.Object3D
         @_windDisplacementRTexture.needsUpdate = true
         @_windDisplacementGTexture.needsUpdate = true
         @_windDisplacementBTexture.needsUpdate = true
-
+        @_colorChannelTexture.needsUpdate = true
