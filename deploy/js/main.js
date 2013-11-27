@@ -882,7 +882,7 @@ var WindDisplacementChannel;
 WindDisplacementChannel = (function() {
   WindDisplacementChannel.prototype.canvas = null;
 
-  WindDisplacementChannel.prototype._canRotate = null;
+  WindDisplacementChannel.prototype._canRotate = false;
 
   WindDisplacementChannel.prototype._size = 0;
 

@@ -1,7 +1,7 @@
 class WindDisplacementChannel
 
     canvas: null
-    _canRotate: null
+    _canRotate: false
     _size: 0
     _ctx: null
     _textDisplacement: null
