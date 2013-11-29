@@ -54,6 +54,7 @@ class Grass extends THREE.Object3D
 
     _generateBlades: ->
         @_colors = []
+        @_colorsWinter = []
         @_positions = []
         @_windRatio = []
         @_blades = new THREE.Geometry()
@@ -66,9 +67,9 @@ class Grass extends THREE.Object3D
             new THREE.Color 0x23dc46
             new THREE.Color 0x74ff2f 
         ]
-        lengthAvailableColors = availableColors.length
+        lengthAvailableColors = Colors.grassSummer.length
 
-        step = 160
+        step = 120
 
         idx = 0
 
@@ -77,7 +78,9 @@ class Grass extends THREE.Object3D
         zMin = 0
         zMax = @h
 
-        heightValue = 0
+        baseRatio = @h >> 1
+
+        heightValue = 0 
         px = xMin
         pz = zMin
         vx = @w / step
@@ -87,13 +90,19 @@ class Grass extends THREE.Object3D
                 blade = new GrassBlade px, 0, pz
                 @_vectors.push new WindVectorData px, pz
                 heightValue = HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
+                ratio = 1 - pz / @h
+                # heightValue += ratio * 100
+                ratio = 1 #+ 0.5 * ratio
+                heightValue *= ratio
                 geo = blade.geometry
                 for v in geo.vertices
                     if v.y < 10
                         @_windRatio[ idx ] = 0.0
-                        @_colors[ idx ] = baseColor
+                        @_colors[ idx ] = Colors.floor
+                        @_colorsWinter[ idx ] = Colors.floor
                     else
-                        @_colors[ idx ] = availableColors[ Math.random() * lengthAvailableColors >> 0 ]
+                        @_colors[ idx ] = Colors.grassSummer[ Math.random() * lengthAvailableColors >> 0 ]
+                        @_colorsWinter[ idx ] = Colors.grassWinter[ Math.random() * lengthAvailableColors >> 0 ]
                         @_windRatio[ idx ] = 1.0
                     v.y += heightValue
                     @_positions[ idx ] = new THREE.Vector3 px, 0, pz + heightValue
@@ -127,6 +136,7 @@ class Grass extends THREE.Object3D
             lights: true
 
         @_attributes.aColor.value = @_colors
+        @_attributes.aColorWinter.value = @_colorsWinter
         @_attributes.aWindRatio.value = @_windRatio
         @_attributes.aWindOrientation.value = @_windOrientation = []
         @_attributes.aWindLength.value = @_windLength = []
@@ -147,6 +157,8 @@ class Grass extends THREE.Object3D
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uFloorW.value = @w
         @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
+        @_uniforms.uFloorColor.value = Colors.floor
+        @_uniforms.uGrassBladeHeight.value = GrassBlade.HEIGHT
 
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src
         @_uniforms.uWindScale.value = 1

@@ -19,8 +19,8 @@ class EngineSingleton
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 45, stage.size.w / stage.size.h, 1, 10000
-            @camera.position.set 0, 300, 250
-            @camera.lookAt new THREE.Vector3 0, 0, -1280
+            @camera.position.set 0, 120, 150
+            @camera.lookAt new THREE.Vector3 0, 50, -1280 /2
             # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
@@ -31,14 +31,15 @@ class EngineSingleton
 
         _initLights: ->
             ambient = new THREE.AmbientLight 0x8b937f
-            @scene.add ambient
+            # ambient = new THREE.AmbientLight 0xffffff
+            # @scene.add ambient
 
             # directionalLight = new THREE.DirectionalLight 0xffffff
             # directionalLight.position.set( 1, 1, 2 ).normalize()
             # @scene.add directionalLight
 
-            # pointLight = new THREE.PointLight( 0xe9ff9b, 2, 1500 )
-            pointLight = new THREE.PointLight( 0x799d5a, 2, 1500 )
+            pointLight = new THREE.PointLight( 0xe9ff9b, 2, 1000 )
+            # pointLight = new THREE.PointLight( 0xffffff, 2, 1500 )
             pointLight.position.set 50, 50, 50
             @scene.add pointLight
 

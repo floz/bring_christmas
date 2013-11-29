@@ -10,7 +10,7 @@ class Floor extends THREE.Mesh
         @_geometry = new THREE.PlaneGeometry w, h, 127, 127
         @_modifyFloor()
 
-        @_texture = new THREE.MeshBasicMaterial color: 0x234706, lights: false
+        @_texture = new THREE.MeshBasicMaterial color: Colors.floor.getHex(), lights: false
 
         THREE.Mesh.call @, @_geometry, @_texture
 
@@ -19,8 +19,13 @@ class Floor extends THREE.Mesh
     _modifyFloor: ->
         data = HeightData.get()
 
+        baseRatio = @h >> 1
+
         vertices = @_geometry.vertices
         for vertice, i in vertices
-            vertice.z = data[ i ]
+            ratio = ( baseRatio + vertice.y ) / @h
+            # vertice.z = data[ i ] + ratio * 100
+            ratio = 1 #+ 0.5 * ratio
+            vertice.z = data[ i ] * ratio
 
         @_geometry.computeFaceNormals()
