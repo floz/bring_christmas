@@ -14,8 +14,8 @@
     <div id="scene"></div>
 
     <div id="textures">
-      <img id="texture-noise" class="texture" src="img/map_noise_pow2.png" width="256" height="128"/>
-      <img id="texture-height" class="texture" src="img/map_height_2.png" width="128" height="128"/>
+      <img id="texture-noise" class="texture" src="img/map_noise_pow2_mul2.png" width="512" height="128"/>
+      <img id="texture-height" class="texture" src="img/map_height_mul2.png" width="256" height="128"/>
       <img id="texture-displacement-r" class="texture" src="img/normal_map_r4.png" width="64" height="64" />
       <img id="texture-displacement-g" class="texture" src="img/normal_map_g.png" width
       ="64" height="64" />
@@ -26,17 +26,26 @@
     </div>
 
     <div id="maps">
-      <canvas id="map-displacement-r" width="256" height="256"></canvas>
-      <canvas id="map-displacement-g" width="256" height="256"></canvas>
-      <canvas id="map-displacement-b" width="256" height="256"></canvas>
-      <canvas id="map-color" width="256" height="256"></canvas>
+      <canvas id="map-displacement-r" width="512" height="256"></canvas>
+      <canvas id="map-displacement-g" width="512" height="256"></canvas>
+      <canvas id="map-displacement-b" width="512" height="256"></canvas>
+      <canvas id="map-color" width="512" height="256"></canvas>
     </div>
 
     <script type="text/javascript" src="js/vendor/RequestAnimationFrame.js"></script>
     <script type="text/javascript" src="js/vendor/threejs/three.min.js"></script>
-    <script type="text/javascript" src="js/vendor/threejs/plugins/controls/TrackballControls.js"></script>
-    <script type="text/javascript" src="js/vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/SSAOShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/FXAAShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/VignetteShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/CopyShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/ConvolutionShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/EffectComposer.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/RenderPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/ShaderPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/BloomPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/MaskPass.js"></script>
     <script type="text/javascript" src="js/vendor/Stats.js"></script>
+    <script type="text/javascript" src="js/vendor/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
 
   </body>

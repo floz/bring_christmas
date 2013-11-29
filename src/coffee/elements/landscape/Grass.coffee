@@ -5,6 +5,7 @@ class Grass extends THREE.Object3D
     h: 0
 
     _texture: null
+    _noiseW: 0
     _projector: null
     _vProjector: null
     _displacementData: null
@@ -30,18 +31,20 @@ class Grass extends THREE.Object3D
 
     _lastProjectedMouse: { x: 0.0, y: 0.0, z: 0.0 }
 
+
     _sign: 1
     _add: 0
 
     constructor: ( @_floor, @w, @h ) ->
         @_texture = document.getElementById "texture-noise"
+        @_noiseW = @_texture.width
         @_projector = new THREE.Projector()
         @_vProjector = new THREE.Vector3()
         @_displacementChannelR = new WindDisplacementChannel "map-displacement-r", "texture-displacement-r",
         @_displacementChannelG = new WindDisplacementChannel "map-displacement-g", "texture-displacement-g", true
         @_displacementChannelB = new WindDisplacementChannel "map-displacement-b", "texture-displacement-b", true
         @_colorChannel = new ColorChannel "map-color", "texture-color"
-        @_displacementData = new WindDisplacementData -w >> 1, 0, w >> 1, -h
+        @_displacementData = new WindDisplacementData w, h, -w >> 1, 0, w >> 1, -h
         @_displacementData.addChannel @_displacementChannelR
         @_displacementData.addChannel @_displacementChannelG
         @_displacementData.addChannel @_displacementChannelB
@@ -69,7 +72,7 @@ class Grass extends THREE.Object3D
         ]
         lengthAvailableColors = Colors.grassSummer.length
 
-        step = 120
+        step = 200
 
         idx = 0
 
@@ -155,6 +158,7 @@ class Grass extends THREE.Object3D
         @_uniforms.uColorChannel.value = @_colorChannelTexture
         @_uniforms.uOffsetX.value = 0.0
         @_uniforms.uZoneW.value = @w >> 1
+        @_uniforms.uZoneH.value = @w >> 1
         @_uniforms.uFloorW.value = @w
         @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
         @_uniforms.uFloorColor.value = Colors.floor
@@ -174,7 +178,7 @@ class Grass extends THREE.Object3D
         return ((x - a1)/(a2 - a1)) * (b2 - b1) + b1;
 
     update: ->
-        if @_add > 256
+        if @_add > @_noiseW
             @_add = 0
         @_add += 1
 

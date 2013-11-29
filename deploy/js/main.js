@@ -95,6 +95,10 @@ WindShader = (function() {
         type: "f",
         vaue: 0.0
       },
+      "uZoneH": {
+        type: "f",
+        vaue: 0.0
+      },
       "uFloorW": {
         type: "f",
         value: 0.0
@@ -150,7 +154,7 @@ WindShader = (function() {
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute vec3 aColorWinter;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "uniform float uGrassBladeHeight;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec2 vPercent;", "varying float vColorRatio;", "varying float vFloorColorPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float baseY = position.y;", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windMod = ( 1.0 - vWindForce ) * aWindRatio;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / 1280.0, aPosition.z / 1280.0 );", "float r = texture2D( uWindDisplacementR, percent ).r;", "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "if ( g >= 0.405 && g <= 0.505 ) g = 0.5;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "if ( b >= 0.405 && b <= 0.505 ) b = 0.5;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "if ( aWindRatio == 0.0 ) {", "vFloorColorPercent = 1.0;", "} else {", "vFloorColorPercent = ( baseY - pos.y ) / ( uGrassBladeHeight / 6.0 );", "if ( vFloorColorPercent < 0.0 ) vFloorColorPercent = 0.0;", "if ( vFloorColorPercent > 1.0 ) vFloorColorPercent = 1.0;", "}", "vPercent = percent;", "vColorRatio = aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "vColorWinter = aColorWinter;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute vec3 aColorWinter;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uZoneH;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "uniform float uGrassBladeHeight;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec2 vPercent;", "varying float vColorRatio;", "varying float vFloorColorPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float baseY = position.y;", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windMod = ( 1.0 - vWindForce ) * aWindRatio;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / uZoneW * 0.5, aPosition.z / uZoneH );", "float r = texture2D( uWindDisplacementR, percent ).r;", "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "if ( g >= 0.405 && g <= 0.505 ) g = 0.5;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "if ( b >= 0.405 && b <= 0.505 ) b = 0.5;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "if ( aWindRatio == 0.0 ) {", "vFloorColorPercent = 1.0;", "} else {", "vFloorColorPercent = ( baseY - pos.y ) / ( uGrassBladeHeight / 6.0 );", "if ( vFloorColorPercent < 0.0 ) vFloorColorPercent = 0.0;", "if ( vFloorColorPercent > 1.0 ) vFloorColorPercent = 1.0;", "}", "vPercent = percent;", "vColorRatio = aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "vColorWinter = aColorWinter;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
   WindShader.prototype.fragmentShader = ["uniform float opacity;", "uniform sampler2D uColorChannel;", "uniform vec3 uFloorColor;", "varying float vColorRatio;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec4 vDebugColor;", "varying vec2 vPercent;", "varying float vFloorColorPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;", "vec3 newColor = vColor;", "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;", "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;", "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;", "newColor.r = newColor.r + ( uFloorColor.r - newColor.r ) * vFloorColorPercent;", "newColor.g = newColor.g + ( uFloorColor.g - newColor.g ) * vFloorColorPercent;", "newColor.b = newColor.b + ( uFloorColor.b - newColor.b ) * vFloorColorPercent;", "gl_FragColor = vec4( newColor.rgb, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
@@ -406,7 +410,7 @@ Floor = (function(_super) {
   function Floor(w, h) {
     this.w = w;
     this.h = h;
-    this._geometry = new THREE.PlaneGeometry(w, h, 127, 127);
+    this._geometry = new THREE.PlaneGeometry(w, h, this.w / 10, this.h / 10);
     this._modifyFloor();
     this._texture = new THREE.MeshBasicMaterial({
       color: Colors.floor.getHex(),
@@ -417,15 +421,17 @@ Floor = (function(_super) {
   }
 
   Floor.prototype._modifyFloor = function() {
-    var baseRatio, data, i, ratio, vertice, vertices, _i, _len;
+    var baseH, baseRatio, baseW, data, i, ratio, vertice, vertices, _i, _len;
     data = HeightData.get();
     baseRatio = this.h >> 1;
+    baseW = this.w / 10 >> 1;
+    baseH = this.h / 10 >> 1;
     vertices = this._geometry.vertices;
     for (i = _i = 0, _len = vertices.length; _i < _len; i = ++_i) {
       vertice = vertices[i];
       ratio = (baseRatio + vertice.y) / this.h;
       ratio = 1;
-      vertice.z = data[i] * ratio;
+      vertice.z += HeightData.getPixelValue(baseW + vertice.x / 10 >> 0, baseH - vertice.y / 10 >> 0);
     }
     return this._geometry.computeFaceNormals();
   };
@@ -448,6 +454,8 @@ Grass = (function(_super) {
   Grass.prototype.h = 0;
 
   Grass.prototype._texture = null;
+
+  Grass.prototype._noiseW = 0;
 
   Grass.prototype._projector = null;
 
@@ -506,12 +514,13 @@ Grass = (function(_super) {
     this.w = w;
     this.h = h;
     this._texture = document.getElementById("texture-noise");
+    this._noiseW = this._texture.width;
     this._projector = new THREE.Projector();
     this._vProjector = new THREE.Vector3();
     this._displacementChannelR = new WindDisplacementChannel("map-displacement-r", "texture-displacement-r", this._displacementChannelG = new WindDisplacementChannel("map-displacement-g", "texture-displacement-g", true));
     this._displacementChannelB = new WindDisplacementChannel("map-displacement-b", "texture-displacement-b", true);
     this._colorChannel = new ColorChannel("map-color", "texture-color");
-    this._displacementData = new WindDisplacementData(-w >> 1, 0, w >> 1, -h);
+    this._displacementData = new WindDisplacementData(w, h, -w >> 1, 0, w >> 1, -h);
     this._displacementData.addChannel(this._displacementChannelR);
     this._displacementData.addChannel(this._displacementChannelG);
     this._displacementData.addChannel(this._displacementChannelB);
@@ -532,7 +541,7 @@ Grass = (function(_super) {
     baseColor = new THREE.Color(0x3d5d0a);
     availableColors = [new THREE.Color(0x53dc23), new THREE.Color(0xb3dc23), new THREE.Color(0x23dc46), new THREE.Color(0x74ff2f)];
     lengthAvailableColors = Colors.grassSummer.length;
-    step = 120;
+    step = 200;
     idx = 0;
     xMin = 0;
     xMax = this.w;
@@ -614,6 +623,7 @@ Grass = (function(_super) {
     this._uniforms.uColorChannel.value = this._colorChannelTexture;
     this._uniforms.uOffsetX.value = 0.0;
     this._uniforms.uZoneW.value = this.w >> 1;
+    this._uniforms.uZoneH.value = this.w >> 1;
     this._uniforms.uFloorW.value = this.w;
     this._uniforms.uMousePos.value = new THREE.Vector2(stage.mouse.x, stage.mouse.y);
     this._uniforms.uFloorColor.value = Colors.floor;
@@ -634,7 +644,7 @@ Grass = (function(_super) {
 
   Grass.prototype.update = function() {
     var camPos, m, pos;
-    if (this._add > 256) {
+    if (this._add > this._noiseW) {
       this._add = 0;
     }
     this._add += 1;
@@ -669,7 +679,7 @@ var GrassBlade,
 GrassBlade = (function(_super) {
   __extends(GrassBlade, _super);
 
-  GrassBlade.HEIGHT = 30;
+  GrassBlade.HEIGHT = 40;
 
   GrassBlade.prototype.geometry = null;
 
@@ -678,7 +688,7 @@ GrassBlade = (function(_super) {
   function GrassBlade(x, y, z) {
     var h, pz, w;
     pz = z - 500;
-    w = .25 + .5 * (1280 - pz) / 1280 + Math.random() * 1;
+    w = .25 + .5 * (Size.h - pz) / Size.h + Math.random() * 1;
     h = GrassBlade.HEIGHT;
     this.geometry = new THREE.PlaneGeometry(w, h, 1, 1);
     this.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, h >> 1, 0));
@@ -707,7 +717,7 @@ Land = (function(_super) {
 
   function Land() {
     THREE.Object3D.call(this);
-    this._floor = new Floor(1280, 1280);
+    this._floor = new Floor(Size.w, Size.h);
     this.add(this._floor);
     this._grass = new Grass(this._floor, this._floor.w, this._floor.h);
     this.add(this._grass);
@@ -752,7 +762,9 @@ var ColorChannel, ColorDot,
 ColorChannel = (function() {
   ColorChannel.prototype.canvas = null;
 
-  ColorChannel.prototype._size = 0;
+  ColorChannel.prototype.w = 0;
+
+  ColorChannel.prototype.h = 0;
 
   ColorChannel.prototype._ctx = null;
 
@@ -767,7 +779,8 @@ ColorChannel = (function() {
   function ColorChannel(idCanvas, idText, canRotate) {
     this.canvas = document.getElementById(idCanvas);
     this._canRotate = canRotate || false;
-    this._size = this.canvas.width;
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
     this._ctx = this.canvas.getContext("2d");
     this._ctx.fillStyle = "rgba( 0, 0, 0, 0 )";
     this._textDisplacement = document.getElementById(idText);
@@ -777,20 +790,21 @@ ColorChannel = (function() {
   }
 
   ColorChannel.prototype._createDots = function() {
-    var px, py, space, step, x, y, _i, _j, _results;
+    var px, py, spaceX, spaceY, step, x, y, _i, _j, _results;
     this._dots = [];
-    step = 7;
-    space = this._size / step;
+    step = 14;
+    spaceX = this.w / step;
+    spaceY = this.h / step;
     px = 0;
     py = 0;
     _results = [];
     for (x = _i = 0; 0 <= step ? _i < step : _i > step; x = 0 <= step ? ++_i : --_i) {
       for (y = _j = 0; 0 <= step ? _j < step : _j > step; y = 0 <= step ? ++_j : --_j) {
         this._dots.push(new ColorDot(px, py));
-        px += space;
+        px += spaceX;
       }
       px = 0;
-      _results.push(py += space);
+      _results.push(py += spaceY);
     }
     return _results;
   };
@@ -799,7 +813,7 @@ ColorChannel = (function() {
 
   ColorChannel.prototype.draw = function(x, y) {
     var dist, dot, dx, dy, _i, _len, _ref, _results;
-    this._ctx.clearRect(0, 0, this._size, this._size);
+    this._ctx.clearRect(0, 0, this.w, this.h);
     _ref = this._dots;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -807,7 +821,7 @@ ColorChannel = (function() {
       dx = x - dot.x;
       dy = y - dot.y;
       dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 20) {
+      if (dist < 10) {
         dot.activate();
       }
       dot.update();
@@ -877,17 +891,24 @@ HeightData = (function() {
 
   HeightData._data = null;
 
+  HeightData.prototype._w = 0;
+
+  HeightData.prototype._h = 0;
+
   HeightData.get = function() {
-    var canvas, ctx, data, i, j, _i, _ref;
+    var canvas, ctx, data, i, j, texture, _i, _ref;
     if (HeightData._data) {
       return HeightData._data;
     }
+    texture = document.getElementById("texture-height");
+    this._w = texture.width;
+    this._h = texture.height;
     canvas = document.createElement("canvas");
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = this._w;
+    canvas.height = this._h;
     ctx = canvas.getContext("2d");
-    ctx.drawImage(document.getElementById("texture-height"), 0, 0);
-    HeightData._rawData = data = ctx.getImageData(0, 0, 128, 128).data;
+    ctx.drawImage(texture, 0, 0);
+    HeightData._rawData = data = ctx.getImageData(0, 0, this._w, this._h).data;
     HeightData._data = [];
     j = 0;
     for (i = _i = 0, _ref = data.length; _i < _ref; i = _i += 4) {
@@ -897,7 +918,13 @@ HeightData = (function() {
   };
 
   HeightData.getPixelValue = function(x, y) {
-    return HeightData._data[y * 128 + x];
+    if (x > this._w - 1) {
+      x = this._w - 1;
+    }
+    if (y > this._h - 1) {
+      y = this._h - 1;
+    }
+    return HeightData._data[y * this._w + x];
   };
 
   return HeightData;
@@ -911,7 +938,9 @@ WindDisplacementChannel = (function() {
 
   WindDisplacementChannel.prototype._canRotate = false;
 
-  WindDisplacementChannel.prototype._size = 0;
+  WindDisplacementChannel.prototype.w = 0;
+
+  WindDisplacementChannel.prototype.h = 0;
 
   WindDisplacementChannel.prototype._ctx = null;
 
@@ -924,7 +953,8 @@ WindDisplacementChannel = (function() {
   function WindDisplacementChannel(idCanvas, idText, canRotate) {
     this.canvas = document.getElementById(idCanvas);
     this._canRotate = canRotate || false;
-    this._size = this.canvas.width;
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
     this._ctx = this.canvas.getContext("2d");
     this._ctx.fillStyle = "rgba( 128, 128, 128, 1 )";
     this._textDisplacement = document.getElementById(idText);
@@ -934,7 +964,7 @@ WindDisplacementChannel = (function() {
 
   WindDisplacementChannel.prototype.fill = function(alpha) {
     this._ctx.fillStyle = "rgba( 128, 128, 128, " + alpha + ")";
-    return this._ctx.fillRect(0, 0, this._size, this._size);
+    return this._ctx.fillRect(0, 0, this.w, this.h);
   };
 
   WindDisplacementChannel.prototype.draw = function(x, y, orientation) {
@@ -966,7 +996,9 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._channels = null;
 
-  WindDisplacementData.prototype._size = 256;
+  WindDisplacementData.prototype._sizeW = 0;
+
+  WindDisplacementData.prototype._sizeH = 0;
 
   WindDisplacementData.prototype._ctx = null;
 
@@ -985,7 +1017,7 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._speed = 0.0;
 
-  function WindDisplacementData(_xMin, _yMin, _xMax, _yMax) {
+  function WindDisplacementData(sizeW, sizeH, _xMin, _yMin, _xMax, _yMax) {
     this._xMin = _xMin;
     this._yMin = _yMin;
     this._xMax = _xMax;
@@ -994,6 +1026,10 @@ WindDisplacementData = (function() {
   }
 
   WindDisplacementData.prototype.addChannel = function(channel) {
+    if (this._channels.length === 0) {
+      this._sizeW = channel.w;
+      this._sizeH = channel.h;
+    }
     return this._channels.push(channel);
   };
 
@@ -1090,7 +1126,7 @@ WindDisplacementData = (function() {
       value = xMax;
     }
     percent = value / xMax;
-    return percent * this._size;
+    return percent * this._sizeW;
   };
 
   WindDisplacementData.prototype._scaleY = function(value) {
@@ -1104,7 +1140,7 @@ WindDisplacementData = (function() {
       value = yMax;
     }
     percent = value / yMax;
-    return percent * this._size;
+    return percent * this._sizeH;
   };
 
   return WindDisplacementData;
@@ -1194,19 +1230,24 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype.scene = null;
 
+    EngineInstance.prototype._composer = null;
+
+    EngineInstance.prototype._depthTarget = null;
+
     EngineInstance.prototype.init = function(container) {
       this.renderer = new THREE.WebGLRenderer({
-        alpha: false
+        alpha: false,
+        antialias: true
       });
       this.renderer.setClearColor(0x416ca3, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
-      this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
+      this.camera = new THREE.PerspectiveCamera(50, stage.size.w / stage.size.h, 1, 3000);
       this.camera.position.set(0, 120, 150);
       this.camera.lookAt(new THREE.Vector3(0, 50, -1280 / 2));
       this.scene = new THREE.Scene();
-      this._initLights();
+      this._initPostProcessing();
       return updateManager.register(this);
     };
 
@@ -1218,8 +1259,41 @@ EngineSingleton = (function() {
       return this.scene.add(pointLight);
     };
 
+    EngineInstance.prototype._initPostProcessing = function() {
+      var effectCopy, effectVignette, fxaa, ssao;
+      this.renderer.autoClear = false;
+      this._depthTarget = new THREE.WebGLRenderTarget(stage.size.w, stage.size.h, {
+        minFilter: THREE.NearestFilter,
+        magFilter: THREE.NearestFilter,
+        format: THREE.RGBAFormat
+      });
+      this._composer = new THREE.EffectComposer(this.renderer);
+      this._composer.addPass(new THREE.RenderPass(this.scene, this.camera));
+      ssao = new THREE.ShaderPass(THREE.SSAOShader);
+      ssao.uniforms.tDepth.value = this._depthTarget;
+      ssao.uniforms.size.value.set(stage.size.w, stage.size.h);
+      ssao.uniforms.cameraNear.value = 1;
+      ssao.uniforms.cameraFar.value = 3000;
+      ssao.uniforms.aoClamp.value = 0.5;
+      ssao.uniforms.lumInfluence.value = 0.4;
+      ssao.uniforms.onlyAO.value = 0;
+      this._composer.addPass(new THREE.BloomPass(0.5));
+      fxaa = new THREE.ShaderPass(THREE.FXAAShader);
+      fxaa.uniforms.resolution.value = new THREE.Vector2(1 / stage.size.w, 1 / stage.size.h);
+      this._composer.addPass(fxaa);
+      effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
+      effectVignette.uniforms.offset.value = 1.0;
+      effectVignette.uniforms.darkness.value = 1.1;
+      this._composer.addPass(effectVignette);
+      effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+      effectCopy.renderToScreen = true;
+      return this._composer.addPass(effectCopy);
+    };
+
     EngineInstance.prototype.update = function() {
-      return this.renderer.render(this.scene, this.camera);
+      this.renderer.clearTarget(this._depthTarget);
+      this.renderer.render(this.scene, this.camera, this._depthTarget);
+      return this._composer.render(.1);
     };
 
     return EngineInstance;
@@ -1237,6 +1311,19 @@ EngineSingleton = (function() {
 })();
 
 engine = EngineSingleton.get();
+
+var Size;
+
+Size = (function() {
+  function Size() {}
+
+  Size.w = 2560;
+
+  Size.h = 1280;
+
+  return Size;
+
+})();
 
 var StageSingleton, stage,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -1392,7 +1479,6 @@ Main = (function() {
   function Main() {
     var world;
     engine.init(document.getElementById("scene"));
-    engine.scene.add(new Axis(1000));
     world = new World();
     engine.scene.add(world);
     updateManager.enableDebugMode();

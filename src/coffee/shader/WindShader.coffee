@@ -41,6 +41,7 @@ class WindShader
 
                 "uOffsetX" : { type: "f", value: 0.0 }
                 "uZoneW": { type: "f", vaue: 0.0 }
+                "uZoneH": { type: "f", vaue: 0.0 }
                 "uFloorW": { type: "f", value: 0.0 }
                 "uFloorColor": { type: "c", value: null }
                 "uWindMapForce": { type: "t", value: null }
@@ -71,6 +72,7 @@ class WindShader
 
             "uniform float uOffsetX;"
             "uniform float uZoneW;"
+            "uniform float uZoneH;"
             "uniform float uFloorW;"
             "uniform vec3 uMousePos;"
             "uniform sampler2D uWindMapForce;"
@@ -157,21 +159,12 @@ class WindShader
 
                     ##
 
-                    # "vec4 wpos = modelMatrix * vec4( position, 1.0 );"
-                    # "float dx = uMousePos.x - wpos.x;"
-                    # "float dz = uMousePos.z - wpos.z;"
-                    # "float dist = sqrt( dx * dx + dz * dz );"
-                    # "if( dist > 100.0 )"
-                    #     "dist = 100.0;"
-                    # "dist = 100.0 - dist;"
-                    # "dist *= 4.0;"
-
                     ##
 
                     "vec2 src = vec2( 0, 1 );"
                     "vec2 dest = vec2( -1, 1 );"
 
-                    "vec2 percent = vec2( aPosition.x / 1280.0, aPosition.z / 1280.0 );"
+                    "vec2 percent = vec2( aPosition.x / uZoneW * 0.5, aPosition.z / uZoneH );"
                     "float r = texture2D( uWindDisplacementR, percent ).r;"
                     "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;"
                     "r = convertToRange( r, src, dest );"
@@ -231,6 +224,7 @@ class WindShader
             "varying vec4 vDebugColor;"
             "varying vec2 vPercent;"
             "varying float vFloorColorPercent;"
+            # "varying float vWindForce;"
 
             "#ifdef DOUBLE_SIDED"
 

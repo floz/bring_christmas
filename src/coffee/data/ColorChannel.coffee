@@ -1,7 +1,8 @@
 class ColorChannel
 
     canvas: null
-    _size: 0
+    w: 0
+    h: 0
     _ctx: null
     _textDisplacement: null
     _textDisplacementW: 0
@@ -11,7 +12,8 @@ class ColorChannel
     constructor: ( idCanvas, idText, canRotate ) ->
         @canvas = document.getElementById idCanvas
         @_canRotate = canRotate || false
-        @_size = @canvas.width
+        @w = @canvas.width
+        @h = @canvas.height
         @_ctx = @canvas.getContext "2d"
         @_ctx.fillStyle = "rgba( 0, 0, 0, 0 )"
 
@@ -24,28 +26,29 @@ class ColorChannel
     _createDots: ->
         @_dots = []
 
-        step = 7
-        space = @_size / step
+        step = 14
+        spaceX = @w / step
+        spaceY = @h / step
         px = 0
         py = 0
         for x in [ 0...step ]
             for y in [ 0...step ]
                 @_dots.push new ColorDot px, py
-                px += space
+                px += spaceX
             px = 0
-            py += space
+            py += spaceY
 
     fill: ( alpha ) ->
 
     draw: ( x, y ) ->
-        @_ctx.clearRect 0, 0, @_size, @_size
+        @_ctx.clearRect 0, 0, @w, @h
 
         for dot in @_dots
             dx = x - dot.x
             dy = y - dot.y
             dist = Math.sqrt dx * dx + dy * dy
 
-            dot.activate() if dist < 20
+            dot.activate() if dist < 10
             dot.update()
 
             @_ctx.save()

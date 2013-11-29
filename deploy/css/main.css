@@ -1,4 +1,4 @@
-/* line 1, ../../src/sass/main.scss */
+/* line 3, ../../src/sass/main.scss */
 body {
   background: #fff;
   padding: 0;
@@ -7,12 +7,19 @@ body {
   overflow: hidden;
 }
 
-/* line 9, ../../src/sass/main.scss */
+/* line 11, ../../src/sass/main.scss */
+#scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* line 20, ../../src/sass/main.scss */
 #textures {
   display: none;
 }
 
-/* line 13, ../../src/sass/main.scss */
+/* line 24, ../../src/sass/main.scss */
 #maps {
   display: none;
   position: absolute;

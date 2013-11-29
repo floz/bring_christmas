@@ -1,9 +1,20 @@
+ @import "compass/css3/transform";
+
 body {
     background:#fff;
     padding:0;
     margin:0;
     font-weight: bold;
     overflow:hidden;
+}
+
+#scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    // @include transform-origin( 0, 0, 0 );
+    // @include scale3d( 2.0, 2.0, 1.0 );
 }
 
 #textures {

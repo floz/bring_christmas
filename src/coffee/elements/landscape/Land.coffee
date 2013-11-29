@@ -5,7 +5,7 @@ class Land extends THREE.Object3D
     constructor: ->
         THREE.Object3D.call @
 
-        @_floor = new Floor 1280, 1280
+        @_floor = new Floor Size.w, Size.h
         @.add @_floor
 
         @_grass = new Grass @_floor, @_floor.w, @_floor.h
