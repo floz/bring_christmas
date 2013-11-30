@@ -531,7 +531,7 @@ Grass = (function(_super) {
   }
 
   Grass.prototype._generateBlades = function() {
-    var availableColors, baseColor, baseRatio, blade, geo, heightValue, i, idx, j, lengthAvailableColors, px, pz, ratio, step, v, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _k, _len, _ref;
+    var availableColors, baseColor, baseRatio, blade, colorSummer, geo, heightValue, i, idx, j, lengthAvailableColors, px, pz, ratio, step, v, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _k, _len, _ref;
     this._colors = [];
     this._colorsWinter = [];
     this._positions = [];
@@ -558,6 +558,7 @@ Grass = (function(_super) {
         blade = new GrassBlade(px, 0, pz);
         this._vectors.push(new WindVectorData(px, pz));
         heightValue = HeightData.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
+        colorSummer = Colors.summer.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
         ratio = 1 - pz / this.h;
         ratio = 1;
         heightValue *= ratio;
@@ -570,7 +571,7 @@ Grass = (function(_super) {
             this._colors[idx] = Colors.floor;
             this._colorsWinter[idx] = Colors.floor;
           } else {
-            this._colors[idx] = Colors.grassSummer[Math.random() * lengthAvailableColors >> 0];
+            this._colors[idx] = colorSummer;
             this._colorsWinter[idx] = Colors.grassWinter[Math.random() * lengthAvailableColors >> 0];
             this._windRatio[idx] = 1.0;
           }
@@ -879,6 +880,53 @@ ColorDot = (function() {
   };
 
   return ColorDot;
+
+})();
+
+var ColorData;
+
+ColorData = (function() {
+  ColorData.prototype._w = 0;
+
+  ColorData.prototype._h = 0;
+
+  ColorData.prototype._colors = null;
+
+  function ColorData(img) {
+    var canvas, color, ctx, data, i, _i, _ref;
+    this.img = img;
+    this._w = this.img.width;
+    this._h = this.img.height;
+    console.log(this._w, this._h);
+    canvas = document.createElement("canvas");
+    canvas.width = this._w;
+    canvas.height = this._h;
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    ctx.drawImage(this.img, 0, 0);
+    data = ctx.getImageData(0, 0, this._w, this._h).data;
+    this._colors = [];
+    for (i = _i = 0, _ref = data.length; _i < _ref; i = _i += 4) {
+      color = new THREE.Color();
+      color.r = data[i] / 255;
+      color.g = data[i + 1] / 255;
+      color.b = data[i + 2] / 255;
+      this._colors.push(color);
+    }
+    console.log(this._colors.length);
+  }
+
+  ColorData.prototype.getPixelValue = function(x, y) {
+    if (x > this._w - 1) {
+      x = this._w - 1;
+    }
+    if (y > this._h - 1) {
+      y = this._h - 1;
+    }
+    return this._colors[y * this._w + x];
+  };
+
+  return ColorData;
 
 })();
 
@@ -1198,11 +1246,13 @@ var Colors;
 Colors = (function() {
   function Colors() {}
 
-  Colors.floor = new THREE.Color(0x4c5a27);
+  Colors.floor = new THREE.Color(0x3c581b);
 
   Colors.grassSummer = [new THREE.Color(0x7a8332), new THREE.Color(0xb3dc23), new THREE.Color(0x8b9b2e), new THREE.Color(0x697426)];
 
   Colors.grassWinter = [new THREE.Color(0xc9f0ff), new THREE.Color(0xa3daef), new THREE.Color(0xc5e9f6), new THREE.Color(0xdcf6ff)];
+
+  Colors.summer = null;
 
   return Colors;
 
@@ -1237,7 +1287,10 @@ EngineSingleton = (function() {
     EngineInstance.prototype.init = function(container) {
       this.renderer = new THREE.WebGLRenderer({
         alpha: false,
-        antialias: true
+        antialias: true,
+        precision: "highp",
+        stencil: false,
+        preserveDrawingBuffer: false
       });
       this.renderer.setClearColor(0x416ca3, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
@@ -1247,6 +1300,7 @@ EngineSingleton = (function() {
       this.camera.position.set(0, 120, 150);
       this.camera.lookAt(new THREE.Vector3(0, 50, -1280 / 2));
       this.scene = new THREE.Scene();
+      this._initLights();
       this._initPostProcessing();
       return updateManager.register(this);
     };
@@ -1260,40 +1314,30 @@ EngineSingleton = (function() {
     };
 
     EngineInstance.prototype._initPostProcessing = function() {
-      var effectCopy, effectVignette, fxaa, ssao;
+      var effectCopy, effectVignette, fxaa, renderPass, renderTarget;
       this.renderer.autoClear = false;
-      this._depthTarget = new THREE.WebGLRenderTarget(stage.size.w, stage.size.h, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat
+      renderTarget = new THREE.WebGLRenderTarget(stage.size.w * 2, stage.size.h * 2, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBFormat,
+        stencilBuffer: true
       });
-      this._composer = new THREE.EffectComposer(this.renderer);
-      this._composer.addPass(new THREE.RenderPass(this.scene, this.camera));
-      ssao = new THREE.ShaderPass(THREE.SSAOShader);
-      ssao.uniforms.tDepth.value = this._depthTarget;
-      ssao.uniforms.size.value.set(stage.size.w, stage.size.h);
-      ssao.uniforms.cameraNear.value = 1;
-      ssao.uniforms.cameraFar.value = 3000;
-      ssao.uniforms.aoClamp.value = 0.5;
-      ssao.uniforms.lumInfluence.value = 0.4;
-      ssao.uniforms.onlyAO.value = 0;
-      this._composer.addPass(new THREE.BloomPass(0.5));
+      this._composer = new THREE.EffectComposer(this.renderer, renderTarget);
+      renderPass = new THREE.RenderPass(this.scene, this.camera);
+      this._composer.addPass(renderPass);
       fxaa = new THREE.ShaderPass(THREE.FXAAShader);
-      fxaa.uniforms.resolution.value = new THREE.Vector2(1 / stage.size.w, 1 / stage.size.h);
+      fxaa.uniforms.resolution.value = new THREE.Vector2(1 / stage.size.w / 2, 1 / stage.size.h / 2);
       this._composer.addPass(fxaa);
       effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
       effectVignette.uniforms.offset.value = 1.0;
       effectVignette.uniforms.darkness.value = 1.1;
-      this._composer.addPass(effectVignette);
       effectCopy = new THREE.ShaderPass(THREE.CopyShader);
       effectCopy.renderToScreen = true;
       return this._composer.addPass(effectCopy);
     };
 
     EngineInstance.prototype.update = function() {
-      this.renderer.clearTarget(this._depthTarget);
-      this.renderer.render(this.scene, this.camera, this._depthTarget);
-      return this._composer.render(.1);
+      return this.renderer.render(this.scene, this.camera);
     };
 
     return EngineInstance;
@@ -1479,6 +1523,7 @@ Main = (function() {
   function Main() {
     var world;
     engine.init(document.getElementById("scene"));
+    Colors.summer = new ColorData(document.getElementById("color-summer"));
     world = new World();
     engine.scene.add(world);
     updateManager.enableDebugMode();
@@ -1489,4 +1534,6 @@ Main = (function() {
 
 })();
 
-new Main();
+$(window).on("load", function() {
+  return new Main();
+});

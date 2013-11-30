@@ -4,10 +4,13 @@ class Main
         engine.init document.getElementById "scene"
         # engine.scene.add new Axis 1000
 
+        Colors.summer = new ColorData document.getElementById "color-summer"
+
         world = new World()
         engine.scene.add world
 
         updateManager.enableDebugMode()
         updateManager.start()
         
-new Main()
+$( window ).on "load", ->
+    new Main()

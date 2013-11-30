@@ -14,9 +14,19 @@ class EngineSingleton
         _depthTarget: null
 
         init: ( container ) ->
-            @renderer = new THREE.WebGLRenderer alpha: false, antialias: true
+            @renderer = new THREE.WebGLRenderer 
+                alpha: false
+                antialias: true
+                precision: "highp"
+                stencil: false
+                preserveDrawingBuffer: false
+
             @renderer.setClearColor 0x416ca3, 1
             @renderer.setSize stage.size.w, stage.size.h
+            # @renderer.shadowMapEnabled = false;
+            # @renderer.shadowMapSoft = false;
+            # @renderer.gammaInput = true;
+            # @renderer.gammaOutput = true;
             # @renderer.setSize stage.size.w >> 1, stage.size.h >> 1
 
             @_container = container
@@ -29,7 +39,7 @@ class EngineSingleton
 
             @scene = new THREE.Scene()
 
-            # @_initLights()
+            @_initLights()
             @_initPostProcessing()
 
             updateManager.register @
@@ -51,44 +61,34 @@ class EngineSingleton
         _initPostProcessing: ->
             @renderer.autoClear = false
 
-            @_depthTarget = new THREE.WebGLRenderTarget stage.size.w, stage.size.h,
-                minFilter: THREE.NearestFilter
-                magFilter: THREE.NearestFilter
-                format: THREE.RGBAFormat
+            renderTarget = new THREE.WebGLRenderTarget stage.size.w * 2, stage.size.h * 2, 
+                minFilter: THREE.LinearFilter
+                magFilter: THREE.LinearFilter
+                format: THREE.RGBFormat
+                stencilBuffer: true
 
-            @_composer = new THREE.EffectComposer @renderer
-            @_composer.addPass new THREE.RenderPass @scene, @camera
+            @_composer = new THREE.EffectComposer @renderer, renderTarget
+            renderPass = new THREE.RenderPass @scene, @camera
+            @_composer.addPass renderPass
 
-            ssao = new THREE.ShaderPass THREE.SSAOShader
-            ssao.uniforms.tDepth.value = @_depthTarget
-            ssao.uniforms.size.value.set stage.size.w, stage.size.h
-            ssao.uniforms.cameraNear.value = 1
-            ssao.uniforms.cameraFar.value = 3000
-            ssao.uniforms.aoClamp.value = 0.5
-            ssao.uniforms.lumInfluence.value = 0.4
-            ssao.uniforms.onlyAO.value = 0
-            # @_composer.addPass ssao
-
-            @_composer.addPass new THREE.BloomPass 0.5
+            # @_composer.addPass new THREE.BloomPass 0.5
 
             fxaa = new THREE.ShaderPass THREE.FXAAShader
-            fxaa.uniforms.resolution.value = new THREE.Vector2 1 / stage.size.w, 1 / stage.size.h
+            fxaa.uniforms.resolution.value = new THREE.Vector2 1 / stage.size.w / 2, 1 / stage.size.h / 2
             @_composer.addPass fxaa
 
             effectVignette = new THREE.ShaderPass THREE.VignetteShader
             effectVignette.uniforms.offset.value = 1.0;
             effectVignette.uniforms.darkness.value = 1.1;
-            @_composer.addPass effectVignette
+            # @_composer.addPass effectVignette
 
             effectCopy = new THREE.ShaderPass THREE.CopyShader
             effectCopy.renderToScreen = true
             @_composer.addPass effectCopy
 
         update: ->
-
-            @renderer.clearTarget @_depthTarget
-            @renderer.render @scene, @camera, @_depthTarget
-            @_composer.render .1
+            @renderer.render @scene, @camera
+            # @_composer.render()
 
     instance = null
     @get: -> 

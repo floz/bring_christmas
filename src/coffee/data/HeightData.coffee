@@ -18,7 +18,7 @@ class HeightData
         canvas.height = @_h
 
         ctx = canvas.getContext "2d"
-        ctx.drawImage texture , 0, 0
+        ctx.drawImage texture, 0, 0
         HeightData._rawData = data = ctx.getImageData( 0, 0, @_w, @_h ).data
 
         HeightData._data = []

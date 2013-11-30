@@ -26,3 +26,8 @@ body {
   right: 0;
   top: 0;
 }
+
+/* line 31, ../../src/sass/main.scss */
+#colors {
+  display: none;
+}

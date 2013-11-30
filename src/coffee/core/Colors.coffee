@@ -1,6 +1,6 @@
 class Colors
 
-    @floor: new THREE.Color 0x4c5a27
+    @floor: new THREE.Color 0x3c581b
     @grassSummer: [ 
         new THREE.Color 0x7a8332
         new THREE.Color 0xb3dc23
@@ -13,3 +13,5 @@ class Colors
         new THREE.Color 0xc5e9f6
         new THREE.Color 0xdcf6ff
     ]
+
+    @summer: null

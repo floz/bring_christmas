@@ -93,6 +93,7 @@ class Grass extends THREE.Object3D
                 blade = new GrassBlade px, 0, pz
                 @_vectors.push new WindVectorData px, pz
                 heightValue = HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
+                colorSummer = Colors.summer.getPixelValue px / 10 >> 0, pz / 10 >> 0
                 ratio = 1 - pz / @h
                 # heightValue += ratio * 100
                 ratio = 1 #+ 0.5 * ratio
@@ -104,7 +105,7 @@ class Grass extends THREE.Object3D
                         @_colors[ idx ] = Colors.floor
                         @_colorsWinter[ idx ] = Colors.floor
                     else
-                        @_colors[ idx ] = Colors.grassSummer[ Math.random() * lengthAvailableColors >> 0 ]
+                        @_colors[ idx ] = colorSummer#Colors.grassSummer[ Math.random() * lengthAvailableColors >> 0 ]
                         @_colorsWinter[ idx ] = Colors.grassWinter[ Math.random() * lengthAvailableColors >> 0 ]
                         @_windRatio[ idx ] = 1.0
                     v.y += heightValue
