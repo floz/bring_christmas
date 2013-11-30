@@ -71,7 +71,7 @@ class EngineSingleton
             renderPass = new THREE.RenderPass @scene, @camera
             @_composer.addPass renderPass
 
-            # @_composer.addPass new THREE.BloomPass 0.5
+            @_composer.addPass new THREE.BloomPass 0.5
 
             fxaa = new THREE.ShaderPass THREE.FXAAShader
             fxaa.uniforms.resolution.value = new THREE.Vector2 1 / stage.size.w / 2, 1 / stage.size.h / 2
@@ -87,8 +87,8 @@ class EngineSingleton
             @_composer.addPass effectCopy
 
         update: ->
-            @renderer.render @scene, @camera
-            # @_composer.render()
+            # @renderer.render @scene, @camera
+            @_composer.render()
 
     instance = null
     @get: -> 

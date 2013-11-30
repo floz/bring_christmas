@@ -245,9 +245,9 @@ class WindShader
                 "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;"
 
                 "vec3 newColor = vColor;"
-                "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;"
-                "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;"
-                "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;"
+                # "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;"
+                # "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;"
+                # "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;"
 
                 "newColor.r = newColor.r + ( uFloorColor.r - newColor.r ) * vFloorColorPercent;"
                 "newColor.g = newColor.g + ( uFloorColor.g - newColor.g ) * vFloorColorPercent;"
