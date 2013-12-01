@@ -33,30 +33,15 @@ class EngineSingleton
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 50, stage.size.w / stage.size.h, 1, 3000
-            @camera.position.set 0, 120, 150
+            @camera.position.set 0, 250, 250
             @camera.lookAt new THREE.Vector3 0, 50, -1280 /2
             # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
 
-            @_initLights()
             @_initPostProcessing()
 
             updateManager.register @
-
-        _initLights: ->
-            ambient = new THREE.AmbientLight 0x8b937f
-            # ambient = new THREE.AmbientLight 0xffffff
-            # @scene.add ambient
-
-            # directionalLight = new THREE.DirectionalLight 0xffffff
-            # directionalLight.position.set( 1, 1, 2 ).normalize()
-            # @scene.add directionalLight
-
-            pointLight = new THREE.PointLight( 0xe9ff9b, 2, 1000 )
-            # pointLight = new THREE.PointLight( 0xffffff, 2, 1500 )
-            pointLight.position.set 50, 50, 50
-            @scene.add pointLight
 
         _initPostProcessing: ->
             @renderer.autoClear = false
@@ -65,7 +50,7 @@ class EngineSingleton
                 minFilter: THREE.LinearFilter
                 magFilter: THREE.LinearFilter
                 format: THREE.RGBFormat
-                stencilBuffer: true
+                stencilBuffer: false
 
             @_composer = new THREE.EffectComposer @renderer, renderTarget
             renderPass = new THREE.RenderPass @scene, @camera
@@ -79,7 +64,7 @@ class EngineSingleton
 
             effectVignette = new THREE.ShaderPass THREE.VignetteShader
             effectVignette.uniforms.offset.value = 1.0;
-            effectVignette.uniforms.darkness.value = 1.1;
+            effectVignette.uniforms.darkness.value = 1.05;
             # @_composer.addPass effectVignette
 
             effectCopy = new THREE.ShaderPass THREE.CopyShader

@@ -30,6 +30,7 @@ class WindDisplacementChannel
     draw:( x, y, orientation ) ->
         @_ctx.save()
         @_ctx.translate x, y
+        @_ctx.scale .75, .75
         @_ctx.rotate orientation if @_canRotate
         @_ctx.drawImage @_textDisplacement, -@_textDisplacementW >> 1, -@_textDisplacementH >> 1
         @_ctx.restore()

@@ -1,19 +1,30 @@
 class Land extends THREE.Object3D
 
+    _grass: null
     _floor: null
+    _snow: null
 
     constructor: ->
         THREE.Object3D.call @
 
-        @_floor = new Floor Size.w, Size.h
+        w = Size.w
+        h = Size.h
+        HeightData.get()
+
+        @_grass = new Grass w, h
+        @.add @_grass
+
+        @_floor = new Floor w, h
         @.add @_floor
 
-        @_grass = new Grass @_floor, @_floor.w, @_floor.h
-        @.add @_grass
+        @_snow = new Snow()
+        @.add @_snow
 
         @.position.z = -500
 
         updateManager.register @
 
     update: ->
+        @_floor.update()
         @_grass.update()
+        @_snow.update()

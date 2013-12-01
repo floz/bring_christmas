@@ -35,7 +35,7 @@ class Grass extends THREE.Object3D
     _sign: 1
     _add: 0
 
-    constructor: ( @_floor, @w, @h ) ->
+    constructor: ( @w, @h ) ->
         @_texture = document.getElementById "texture-noise"
         @_noiseW = @_texture.width
         @_projector = new THREE.Projector()
@@ -63,15 +63,6 @@ class Grass extends THREE.Object3D
         @_blades = new THREE.Geometry()
         @_vectors = []
 
-        baseColor = new THREE.Color 0x3d5d0a
-        availableColors = [ 
-            new THREE.Color 0x53dc23
-            new THREE.Color 0xb3dc23
-            new THREE.Color 0x23dc46
-            new THREE.Color 0x74ff2f 
-        ]
-        lengthAvailableColors = Colors.grassSummer.length
-
         step = 200
 
         idx = 0
@@ -92,8 +83,9 @@ class Grass extends THREE.Object3D
             for j in [ 0...step ]
                 blade = new GrassBlade px, 0, pz
                 @_vectors.push new WindVectorData px, pz
-                heightValue = HeightData.getPixelValue( px / 10 >> 0, pz / 10 >> 0 )
+                heightValue = HeightData.getPixelValue px / 10 >> 0, pz / 10 >> 0
                 colorSummer = Colors.summer.getPixelValue px / 10 >> 0, pz / 10 >> 0
+                colorWinter = Colors.winter.getPixelValue px / 10 >> 0, pz / 10 >> 0
                 ratio = 1 - pz / @h
                 # heightValue += ratio * 100
                 ratio = 1 #+ 0.5 * ratio
@@ -102,11 +94,11 @@ class Grass extends THREE.Object3D
                 for v in geo.vertices
                     if v.y < 10
                         @_windRatio[ idx ] = 0.0
-                        @_colors[ idx ] = Colors.floor
-                        @_colorsWinter[ idx ] = Colors.floor
+                        @_colors[ idx ] = Colors.floorSummer
+                        @_colorsWinter[ idx ] = Colors.floorWinter
                     else
-                        @_colors[ idx ] = colorSummer#Colors.grassSummer[ Math.random() * lengthAvailableColors >> 0 ]
-                        @_colorsWinter[ idx ] = Colors.grassWinter[ Math.random() * lengthAvailableColors >> 0 ]
+                        @_colors[ idx ] = colorSummer
+                        @_colorsWinter[ idx ] = colorWinter
                         @_windRatio[ idx ] = 1.0
                     v.y += heightValue
                     @_positions[ idx ] = new THREE.Vector3 px, 0, pz + heightValue
@@ -162,7 +154,8 @@ class Grass extends THREE.Object3D
         @_uniforms.uZoneH.value = @w >> 1
         @_uniforms.uFloorW.value = @w
         @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
-        @_uniforms.uFloorColor.value = Colors.floor
+        @_uniforms.uFloorColorSummer.value = Colors.floorSummer
+        @_uniforms.uFloorColorWinter.value = Colors.floorWinter
         @_uniforms.uGrassBladeHeight.value = GrassBlade.HEIGHT
 
         @_uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture @_texture.src

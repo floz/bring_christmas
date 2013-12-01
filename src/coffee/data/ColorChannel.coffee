@@ -9,8 +9,11 @@ class ColorChannel
     _textDisplacementH: 0
     _dots: null
 
+    @canvas: null
+
     constructor: ( idCanvas, idText, canRotate ) ->
         @canvas = document.getElementById idCanvas
+        ColorChannel.canvas = @canvas
         @_canRotate = canRotate || false
         @w = @canvas.width
         @h = @canvas.height
@@ -26,7 +29,7 @@ class ColorChannel
     _createDots: ->
         @_dots = []
 
-        step = 14
+        step = 40
         spaceX = @w / step
         spaceY = @h / step
         px = 0
@@ -38,11 +41,14 @@ class ColorChannel
             px = 0
             py += spaceY
 
+        return
+
     fill: ( alpha ) ->
 
     draw: ( x, y ) ->
         @_ctx.clearRect 0, 0, @w, @h
 
+        countActivated = 0
         for dot in @_dots
             dx = x - dot.x
             dy = y - dot.y
@@ -51,11 +57,17 @@ class ColorChannel
             dot.activate() if dist < 10
             dot.update()
 
+            countActivated++ if dot.activated
+
             @_ctx.save()
             @_ctx.globalAlpha = dot.alpha
             @_ctx.translate dot.x, dot.y
             @_ctx.drawImage @_textDisplacement, -@_textDisplacementW >> 1, -@_textDisplacementH >> 1
             @_ctx.restore()
+
+        winterManager.setPercent countActivated / @_dots.length
+
+        return
 
 
 class ColorDot
@@ -72,7 +84,7 @@ class ColorDot
     activate: ->
         return if @activated
         @activated = true
-        setTimeout @deactivate, 5000
+        setTimeout @deactivate, 10000
 
     update: ->
         if @activated

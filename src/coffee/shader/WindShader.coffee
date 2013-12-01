@@ -43,7 +43,8 @@ class WindShader
                 "uZoneW": { type: "f", vaue: 0.0 }
                 "uZoneH": { type: "f", vaue: 0.0 }
                 "uFloorW": { type: "f", value: 0.0 }
-                "uFloorColor": { type: "c", value: null }
+                "uFloorColorSummer": { type: "c", value: null }
+                "uFloorColorWinter": { type: "c", value: null }
                 "uWindMapForce": { type: "t", value: null }
                 "uWindScale": { type: "f", value: 1.0 }
                 "uWindMin": { type: "v2", value: null }
@@ -215,7 +216,8 @@ class WindShader
             "uniform float opacity;"
             # "uniform sampler2D uMapColor;"
             "uniform sampler2D uColorChannel;"
-            "uniform vec3 uFloorColor;"
+            "uniform vec3 uFloorColorSummer;"
+            "uniform vec3 uFloorColorWinter;"
 
             "varying float vColorRatio;"
             "varying vec3 vLightFront;"
@@ -244,14 +246,18 @@ class WindShader
 
                 "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;"
 
-                "vec3 newColor = vColor;"
-                # "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;"
-                # "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;"
-                # "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;"
+                "vec3 floorColor = uFloorColorSummer + ( uFloorColorWinter - uFloorColorSummer ) * winterColor.a;"
 
-                "newColor.r = newColor.r + ( uFloorColor.r - newColor.r ) * vFloorColorPercent;"
-                "newColor.g = newColor.g + ( uFloorColor.g - newColor.g ) * vFloorColorPercent;"
-                "newColor.b = newColor.b + ( uFloorColor.b - newColor.b ) * vFloorColorPercent;"
+                "vec3 newColor = vColor;"
+                "if( vColorRatio == 0.0 )"
+                    "newColor = floorColor;"
+                "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;"
+                "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;"
+                "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;"
+
+                "newColor.r = newColor.r + ( floorColor.r - newColor.r ) * vFloorColorPercent;"
+                "newColor.g = newColor.g + ( floorColor.g - newColor.g ) * vFloorColorPercent;"
+                "newColor.b = newColor.b + ( floorColor.b - newColor.b ) * vFloorColorPercent;"
 
                 "gl_FragColor = vec4( newColor.rgb, opacity );"
 
