@@ -638,6 +638,10 @@ Grass = (function(_super) {
     vz = this.h / step;
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
+        if (pz > 1150) {
+          px += vx;
+          continue;
+        }
         blade = new GrassBlade(px, 0, pz);
         this._vectors.push(new WindVectorData(px, pz));
         heightValue = HeightData.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
@@ -806,7 +810,7 @@ Land = (function(_super) {
   Land.prototype._snow = null;
 
   function Land() {
-    var h, w;
+    var h, sky, treesRight, w;
     THREE.Object3D.call(this);
     w = Size.w;
     h = Size.h;
@@ -817,6 +821,15 @@ Land = (function(_super) {
     this.add(this._floor);
     this._snow = new Snow();
     this.add(this._snow);
+    sky = new Sky();
+    sky.position.z = -Size.h >> 1;
+    sky.position.y = 350;
+    this.add(sky);
+    treesRight = new Trees();
+    treesRight.position.x = Size.w * .5 - 150 >> 0;
+    treesRight.position.y = 150;
+    treesRight.position.z = -Size.h * .5 + 2 >> 0;
+    this.add(treesRight);
     this.position.z = -500;
     updateManager.register(this);
   }
@@ -830,6 +843,49 @@ Land = (function(_super) {
   return Land;
 
 })(THREE.Object3D);
+
+var Sky,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Sky = (function(_super) {
+  __extends(Sky, _super);
+
+  function Sky() {
+    var geometry, material, texture;
+    texture = THREE.ImageUtils.loadTexture("img/sky_big.jpg");
+    geometry = new THREE.PlaneGeometry(Size.w * 1.5, 600);
+    material = new THREE.MeshBasicMaterial({
+      map: texture
+    });
+    THREE.Mesh.call(this, geometry, material);
+  }
+
+  return Sky;
+
+})(THREE.Mesh);
+
+var Trees,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Trees = (function(_super) {
+  __extends(Trees, _super);
+
+  function Trees() {
+    var geometry, material, texture;
+    texture = THREE.ImageUtils.loadTexture("img/trees.png");
+    material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true
+    });
+    geometry = new THREE.PlaneGeometry(512, 256);
+    THREE.Mesh.call(this, geometry, material);
+  }
+
+  return Trees;
+
+})(THREE.Mesh);
 
 var Snow,
   __hasProp = {}.hasOwnProperty,
@@ -859,7 +915,7 @@ Snow = (function(_super) {
     THREE.Object3D.call(this);
     geometry = new THREE.Geometry;
     for (i = _i = 0, _ref = Snow.countFlakes; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      vec = new THREE.Vector3(Math.random() * Size.w, 500, Math.random() * Size.h);
+      vec = new THREE.Vector3(Math.random() * 600, 500, Math.random() * Size.h * 2);
       geometry.vertices.push(vec);
     }
     this._sizes = [];
@@ -876,7 +932,7 @@ Snow = (function(_super) {
       this._idx[i] = i;
     }
     particles = new THREE.ParticleSystem(geometry, this._getMaterial());
-    particles.position.x = -Size.w >> 1;
+    particles.position.x = -600;
     particles.position.z = -Size.h >> 1;
     this.add(particles);
     winterManager.register(this);
@@ -1092,7 +1148,6 @@ ColorData = (function() {
     this.img = img;
     this._w = this.img.width;
     this._h = this.img.height;
-    console.log(this._w, this._h);
     canvas = document.createElement("canvas");
     canvas.width = this._w;
     canvas.height = this._h;
@@ -1108,7 +1163,6 @@ ColorData = (function() {
       color.b = data[i + 2] / 255;
       this._colors.push(color);
     }
-    console.log(this._colors.length);
   }
 
   ColorData.prototype.getPixelValue = function(x, y) {
@@ -1515,7 +1569,6 @@ EngineSingleton = (function() {
       this._composer.addPass(new THREE.BloomPass(0.5));
       fxaa = new THREE.ShaderPass(THREE.FXAAShader);
       fxaa.uniforms.resolution.value = new THREE.Vector2(1 / stage.size.w / 2, 1 / stage.size.h / 2);
-      this._composer.addPass(fxaa);
       effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
       effectVignette.uniforms.offset.value = 1.0;
       effectVignette.uniforms.darkness.value = 1.05;
@@ -1727,6 +1780,11 @@ WinterManagerSingleton = (function() {
 
     WinterManagerInstance.prototype.setPercent = function(percent) {
       var listener, _i, _len, _ref, _results;
+      percent -= .1;
+      if (percent < 0) {
+        percent = 0;
+      }
+      percent *= 2;
       if (percent === this.percent) {
         return;
       }

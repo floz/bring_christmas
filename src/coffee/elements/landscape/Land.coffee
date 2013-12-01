@@ -20,6 +20,17 @@ class Land extends THREE.Object3D
         @_snow = new Snow()
         @.add @_snow
 
+        sky = new Sky()
+        sky.position.z = -Size.h >> 1
+        sky.position.y = 350
+        @.add sky
+
+        treesRight = new Trees()
+        treesRight.position.x = Size.w * .5 - 150 >> 0
+        treesRight.position.y = 150
+        treesRight.position.z = -Size.h * .5 + 2 >> 0
+        @.add treesRight
+
         @.position.z = -500
 
         updateManager.register @

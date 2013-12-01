@@ -8,8 +8,6 @@ class ColorData
         @_w = @img.width
         @_h = @img.height
 
-        console.log @_w, @_h
-
         canvas = document.createElement "canvas"
         canvas.width = @_w
         canvas.height = @_h
@@ -26,7 +24,6 @@ class ColorData
             color.g = data[ i + 1 ] / 255
             color.b = data[ i + 2 ] / 255
             @_colors.push color
-        console.log @_colors.length
 
     getPixelValue: ( x, y ) -> 
         x = @_w - 1 if x > @_w - 1

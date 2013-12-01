@@ -18,7 +18,7 @@ class Snow extends THREE.Object3D
 
 		geometry = new THREE.Geometry
 		for i in [0..Snow.countFlakes]
-			vec = new THREE.Vector3 Math.random() * Size.w, 500, Math.random() * Size.h
+			vec = new THREE.Vector3 Math.random() * 600, 500, Math.random() * Size.h * 2
 			geometry.vertices.push vec
 
 		@_sizes = []
@@ -34,7 +34,7 @@ class Snow extends THREE.Object3D
 			@_idx[ i ] = i
 
 		particles = new THREE.ParticleSystem geometry, @_getMaterial()
-		particles.position.x = -Size.w >> 1
+		particles.position.x = -600
 		particles.position.z = -Size.h >> 1
 
 		@.add particles

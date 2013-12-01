@@ -13,7 +13,9 @@ class WinterManagerSingleton
 			@_listeners.push listener
 
 		setPercent: ( percent ) ->
-			# percent *= 2
+			percent -= .1
+			percent = 0 if percent < 0
+			percent *= 2
 			return if percent == @percent
 			@percent = percent
 			for listener in @_listeners

@@ -60,7 +60,7 @@ class EngineSingleton
 
             fxaa = new THREE.ShaderPass THREE.FXAAShader
             fxaa.uniforms.resolution.value = new THREE.Vector2 1 / stage.size.w / 2, 1 / stage.size.h / 2
-            @_composer.addPass fxaa
+            # @_composer.addPass fxaa
 
             effectVignette = new THREE.ShaderPass THREE.VignetteShader
             effectVignette.uniforms.offset.value = 1.0;

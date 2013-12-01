@@ -81,6 +81,9 @@ class Grass extends THREE.Object3D
         vz = @h / step
         for i in [ 0...step ]
             for j in [ 0...step ]
+                if pz > 1150
+                    px += vx
+                    continue
                 blade = new GrassBlade px, 0, pz
                 @_vectors.push new WindVectorData px, pz
                 heightValue = HeightData.getPixelValue px / 10 >> 0, pz / 10 >> 0
