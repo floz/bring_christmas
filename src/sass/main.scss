@@ -43,6 +43,7 @@ body {
 #loading {
     position: absolute;
     z-index: 1;
+    width: 100%;
 }
 
 #background_loading {
@@ -57,7 +58,7 @@ body {
 
 #content {
     position: absolute;
-    top: 100px;
+    top: 10%;
     left: 50%;
     margin-left: -400px;
     width: 800px;

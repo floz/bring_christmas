@@ -1101,20 +1101,53 @@ SoundsSingleton = (function() {
 
     SoundsInstance.prototype._soundWind = null;
 
+    SoundsInstance.prototype._soundWindUser = null;
+
+    SoundsInstance.prototype._soundPropagation = null;
+
     SoundsInstance.prototype._onAllSoundsLoaded = null;
 
     SoundsInstance.prototype._loadedCount = 0;
 
-    SoundsInstance.prototype._soundsCount = 2;
+    SoundsInstance.prototype._soundsCount = 4;
+
+    SoundsInstance.prototype._currentSoundWind = 0;
+
+    SoundsInstance.prototype._toSoundWind = 0;
 
     function SoundsInstance() {
       this._onSoundLoaded = __bind(this._onSoundLoaded, this);
+      this.onGapWinter = __bind(this.onGapWinter, this);
+      this.onWinter = __bind(this.onWinter, this);
+      this.onSummer = __bind(this.onSummer, this);
     }
 
     SoundsInstance.prototype.init = function() {
       winterManager.register(this);
+      winterManager.registerGap(this);
+      winterManager.registerWinter(this);
       this._soundWinter.volume(0);
-      return this._soundWinter.play();
+      this._soundWinter.play();
+      this._soundWindUser.volume(0);
+      this._soundWindUser.play();
+      return updateManager.register(this);
+    };
+
+    SoundsInstance.prototype.onSummer = function() {
+      return this._soundPropagation.play();
+    };
+
+    SoundsInstance.prototype.onWinter = function() {
+      return this._soundPropagation.play();
+    };
+
+    SoundsInstance.prototype.onGapWinter = function() {
+      return this._soundPropagation.play();
+    };
+
+    SoundsInstance.prototype.update = function() {
+      this._currentSoundWind += (this._toSoundWind - this._currentSoundWind) * .1;
+      return this._soundWindUser.volume(this._currentSoundWind);
     };
 
     SoundsInstance.prototype.load = function(onFirstSoundLoaded, _onAllSoundsLoaded) {
@@ -1130,11 +1163,23 @@ SoundsSingleton = (function() {
         volume: 0.0,
         loop: true
       });
-      return this._soundWind = new Howl({
+      this._soundWind = new Howl({
         urls: ["sounds/137021__jeffreys2__outside-wind.mp3"],
         onload: this._onSoundLoaded,
         volume: 0.0,
         loop: true
+      });
+      this._soundWindUser = new Howl({
+        urls: ["sounds/179110__jasoneweber__wind-1-loop.mp3"],
+        onload: this._onSoundLoaded,
+        volume: 0.0,
+        loop: true
+      });
+      return this._soundPropagation = new Howl({
+        urls: ["sounds/propagation.mp3"],
+        onload: this._onSoundLoaded,
+        volume: 1.0,
+        loop: false
       });
     };
 
@@ -1150,13 +1195,17 @@ SoundsSingleton = (function() {
     };
 
     SoundsInstance.prototype.startWind = function() {
-      this._soundWind.volume = 1.0;
+      this._soundWind.volume(1);
       return this._soundWind.play;
     };
 
     SoundsInstance.prototype.updateWinter = function() {
       this._soundWinter.volume(winterManager.percent * 2);
       return this._soundNormal.volume(1 - winterManager.percent * 2);
+    };
+
+    SoundsInstance.prototype.setSoundWind = function(value) {
+      return this._toSoundWind = (1 - value) * .5;
     };
 
     return SoundsInstance;
@@ -1625,6 +1674,7 @@ WindDisplacementData = (function() {
         channel.fill(this._alpha);
       }
     }
+    sounds.setSoundWind(this._alpha);
     this._lastX = x;
     return this._lastY = y;
   };

@@ -83,6 +83,8 @@ class WindDisplacementData
 
             channel.fill @_alpha for channel in @_channels
 
+        sounds.setSoundWind @_alpha
+
         @_lastX = x
         @_lastY = y
 

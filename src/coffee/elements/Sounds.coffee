@@ -5,18 +5,48 @@ class SoundsSingleton
         _soundNormal: null
         _soundWinter: null
         _soundWind: null
+        _soundWindUser: null
+        _soundPropagation: null
 
         _onAllSoundsLoaded: null
         _loadedCount: 0
-        _soundsCount: 2
+        _soundsCount: 4
 
-        constructor: ->
-            
+        _currentSoundWind: 0
+        _toSoundWind: 0
+
+        constructor: ->            
 
         init: ->
             winterManager.register @
+            winterManager.registerGap @
+            winterManager.registerWinter @
+
             @_soundWinter.volume 0
             @_soundWinter.play()
+
+            @_soundWindUser.volume 0
+            @_soundWindUser.play()
+
+            updateManager.register @
+
+        onSummer: =>
+            @_soundPropagation.play()
+
+        onWinter: =>
+            @_soundPropagation.play()
+
+        onGapWinter: =>
+            @_soundPropagation.play()
+            # new Howl(
+            #     urls: [ "sounds/propagation.mp3" ]
+            #     volume: 1.0
+            #     loop: false
+            # ).play()
+
+        update: ->
+            @_currentSoundWind += ( @_toSoundWind - @_currentSoundWind ) * .1
+            @_soundWindUser.volume @_currentSoundWind
 
         load: ( onFirstSoundLoaded, @_onAllSoundsLoaded ) ->
             @_soundNormal = new Howl
@@ -35,6 +65,18 @@ class SoundsSingleton
                 onload: @_onSoundLoaded
                 volume: 0.0
                 loop: true
+
+            @_soundWindUser = new Howl
+                urls: [ "sounds/179110__jasoneweber__wind-1-loop.mp3" ]
+                onload: @_onSoundLoaded
+                volume: 0.0
+                loop: true
+
+            @_soundPropagation = new Howl
+                urls: [ "sounds/propagation.mp3" ]
+                onload: @_onSoundLoaded
+                volume: 1.0
+                loop: false
         
         _onSoundLoaded: =>
             @_loadedCount++
@@ -44,13 +86,15 @@ class SoundsSingleton
             @_soundNormal.play()
 
         startWind: ->
-            @_soundWind.volume = 1.0
+            @_soundWind.volume 1
             @_soundWind.play
 
         updateWinter: ->
             @_soundWinter.volume winterManager.percent * 2
             @_soundNormal.volume 1 - winterManager.percent * 2
-            
+
+        setSoundWind: ( value ) ->
+            @_toSoundWind = ( 1 - value ) * .5
 
     @_instance: null
     @get: -> @_instance ?= new SoundsInstance()
