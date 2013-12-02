@@ -1,12 +1,16 @@
 class GrassBlade extends THREE.Mesh
 
+    @HEIGHT: 40
+
     geometry: null
     texture: null
 
     constructor: ( x, y, z ) ->
         pz = z - 500
-        w = 1 + Math.random() * 1
-        h = 40 + 30 * ( 1 - ( 1280 - pz ) * .001 )
+        w = .25 + .5 * ( Size.h - pz ) / Size.h + Math.random() * 1
+        # w = 1 + Math.random() * 1
+        # h = 40 + 30 * ( 1 - ( 1280 - pz ) * .001 )
+        h = GrassBlade.HEIGHT
         # h = 50
 
         @geometry = new THREE.PlaneGeometry w, h, 1, 1

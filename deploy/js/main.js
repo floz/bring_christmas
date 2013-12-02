@@ -41,6 +41,57 @@ Axis = (function(_super) {
 
 })(THREE.Object3D);
 
+var SnowShader;
+
+SnowShader = (function() {
+  function SnowShader() {}
+
+  SnowShader.prototype.attributes = {
+    size: {
+      type: "f",
+      value: []
+    },
+    time: {
+      type: "f",
+      value: []
+    },
+    customColor: {
+      type: "c",
+      value: []
+    },
+    idx: {
+      type: "f",
+      value: []
+    }
+  };
+
+  SnowShader.prototype.uniforms = {
+    texture: {
+      type: "t",
+      value: null
+    },
+    globalTime: {
+      type: "f",
+      value: 0.0
+    },
+    color: {
+      type: "c",
+      value: new THREE.Color(0x777777)
+    },
+    idxVisible: {
+      type: "f",
+      value: 0.0
+    }
+  };
+
+  SnowShader.prototype.vertexShader = ["attribute float size;", "attribute float time;", "attribute vec3 customColor;", "attribute float idx;", "uniform float globalTime;", "uniform float idxVisible;", "varying vec3 vColor;", "varying float fAlpha;", "varying float vShow;", "void main() {", "vColor = customColor;", "vShow = 0.0;", "vec3 pos = position;", "if ( idx < idxVisible ) {", "vShow = 0.0;", "gl_Position = vec4( position, 1.0 );", "} else {", "vShow = 1.0;", "float localTime = time + globalTime;", "float modTime = mod( localTime, 1.0 );", "float accTime = modTime * modTime;", "pos.x += pos.x + pos.x * accTime / 2.0 + cos( modTime * 8.0 + position.z ) * 70.0;", "pos.y = pos.y - pos.y * accTime;", "pos.z += sin( modTime * 6.0 + position.x ) * 100.0;", "fAlpha = ( pos.z / 1280.0 * 1.5 );", "if( pos.y < 100.0 )", "fAlpha *= pos.y / 100.0;", "vec3 animated = vec3( pos.x, pos.y, pos.z );", "vec4 mvPosition = modelViewMatrix * vec4( animated, 1.0 );", "gl_PointSize = min( 150.0, size * ( 150.0 / length( mvPosition.xyz ) ) );", "gl_Position = projectionMatrix * mvPosition;", "}", "}"].join("\n");
+
+  SnowShader.prototype.fragmentShader = ["uniform vec3 color;", "uniform sampler2D texture;", "varying vec3 vColor;", "varying float fAlpha;", "varying float vShow;", "void main() {", "if ( vShow == 0.0 )", "discard;", "gl_FragColor = vec4( color * vColor, fAlpha );", "gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );", "}"].join("\n");
+
+  return SnowShader;
+
+})();
+
 var WindShader;
 
 WindShader = (function() {
@@ -48,6 +99,10 @@ WindShader = (function() {
 
   WindShader.prototype.attributes = {
     aColor: {
+      type: "c",
+      value: null
+    },
+    aColorWinter: {
       type: "c",
       value: null
     },
@@ -91,9 +146,21 @@ WindShader = (function() {
         type: "f",
         vaue: 0.0
       },
+      "uZoneH": {
+        type: "f",
+        vaue: 0.0
+      },
       "uFloorW": {
         type: "f",
         value: 0.0
+      },
+      "uFloorColorSummer": {
+        type: "c",
+        value: null
+      },
+      "uFloorColorWinter": {
+        type: "c",
+        value: null
       },
       "uWindMapForce": {
         type: "t",
@@ -115,10 +182,6 @@ WindShader = (function() {
         type: "v3",
         value: null
       },
-      "uMousePos": {
-        type: "v3",
-        value: null
-      },
       "uWindDisplacementR": {
         type: "t",
         value: null
@@ -134,13 +197,29 @@ WindShader = (function() {
       "uColorChannel": {
         type: "t",
         value: null
+      },
+      "uGrassBladeHeight": {
+        type: "f",
+        value: null
+      },
+      "uRippleStart": {
+        type: "v3",
+        value: null
+      },
+      "uRippleDist": {
+        type: "f",
+        value: null
+      },
+      "uRippleStr": {
+        type: "f",
+        value: null
       }
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uFloorW;", "uniform vec3 uMousePos;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec2 vPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windFactor = aWindRatio;", "float windMod = ( 1.0 - vWindForce ) * windFactor;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / 1280.0, aPosition.z / 1280.0 );", "float r = texture2D( uWindDisplacementR, percent ).r;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "vPercent = percent;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute vec3 aColorWinter;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uZoneH;", "uniform float uFloorW;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "uniform float uGrassBladeHeight;", "uniform vec3 uRippleStart;", "uniform float uRippleDist;", "uniform float uRippleStr;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec2 vPercent;", "varying float vColorRatio;", "varying float vFloorColorPercent;", "varying float vRippleValue;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float baseY = position.y;", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windMod = ( 1.0 - vWindForce ) * aWindRatio;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / uZoneW * 0.5, aPosition.z / uZoneH );", "float r = texture2D( uWindDisplacementR, percent ).r;", "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "if ( g >= 0.405 && g <= 0.505 ) g = 0.5;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "if ( b >= 0.405 && b <= 0.505 ) b = 0.5;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "vRippleValue = 0.0;", "if ( uRippleStr != 0.0 ) {", "float dx = uRippleStart.x - aPosition.x;", "float dz = uRippleStart.z - aPosition.z;", "float dist = sqrt( dx * dx + dz * dz );", "float dir = atan( dz, dx );", "float diff = dist - uRippleDist;", "if ( diff < 0.0 ) diff = -diff;", "if( diff < 100.0 ) {", "vRippleValue = diff / 100.0;", "float ripplePercent = ( 1.0 - vRippleValue );", "pos.y += uRippleStr * ripplePercent * aWindRatio;", "pos.x += -cos( dir ) * uRippleStr * ripplePercent * aWindRatio;", "pos.z += -sin( dir ) * uRippleStr * ripplePercent * aWindRatio;", "}", "}", "if ( aWindRatio == 0.0 ) {", "vFloorColorPercent = 1.0;", "} else {", "vFloorColorPercent = ( baseY - pos.y ) / ( uGrassBladeHeight / 6.0 );", "if ( vFloorColorPercent < 0.0 ) vFloorColorPercent = 0.0;", "if ( vFloorColorPercent > 1.0 ) vFloorColorPercent = 1.0;", "}", "vPercent = percent;", "vColorRatio = aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "vColorWinter = aColorWinter;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
-  WindShader.prototype.fragmentShader = ["uniform float opacity;", "uniform sampler2D uColorChannel;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec4 vDebugColor;", "varying vec2 vPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;", "vec3 newColor = vColor;", "newColor.r = newColor.r + ( winterColor.r - newColor.r ) * winterColor.a;", "newColor.g = newColor.g + ( winterColor.g - newColor.g ) * winterColor.a;", "newColor.b = newColor.b + ( winterColor.b - newColor.b ) * winterColor.a;", "gl_FragColor = vec4( newColor.rgb, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], "#ifdef DOUBLE_SIDED", "if ( gl_FrontFacing )", "gl_FragColor.xyz *= vLightFront;", "else", "gl_FragColor.xyz *= vLightBack;", "#else", "gl_FragColor.xyz *= vLightFront;", "#endif", THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
+  WindShader.prototype.fragmentShader = ["uniform float opacity;", "uniform sampler2D uColorChannel;", "uniform vec3 uFloorColorSummer;", "uniform vec3 uFloorColorWinter;", "varying float vColorRatio;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec4 vDebugColor;", "varying vec2 vPercent;", "varying float vFloorColorPercent;", "varying float vRippleValue;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;", "vec3 floorColor = uFloorColorSummer + ( uFloorColorWinter - uFloorColorSummer ) * winterColor.a;", "vec3 newColor = vColor;", "if( vColorRatio == 0.0 )", "newColor = floorColor;", "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;", "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;", "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;", "newColor.r = newColor.r + ( floorColor.r - newColor.r ) * vFloorColorPercent;", "newColor.g = newColor.g + ( floorColor.g - newColor.g ) * vFloorColorPercent;", "newColor.b = newColor.b + ( floorColor.b - newColor.b ) * vFloorColorPercent;", "vec3 rippleColor = vec3( 1.0, 1.0, 1.0 );", "newColor.r = newColor.r + ( rippleColor.r - newColor.r ) * vRippleValue * 0.25;", "newColor.g = newColor.g + ( rippleColor.g - newColor.g ) * vRippleValue * 0.25;", "newColor.b = newColor.b + ( rippleColor.b - newColor.b ) * vRippleValue * 0.25;", "gl_FragColor = vec4( newColor.rgb, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
   return WindShader;
 
@@ -387,6 +466,16 @@ Floor = (function(_super) {
 
   Floor.prototype._texture = null;
 
+  Floor.prototype._material = null;
+
+  Floor.prototype._canvas = null;
+
+  Floor.prototype._canvasW = 0;
+
+  Floor.prototype._canvasH = 0;
+
+  Floor.prototype._ctx = null;
+
   Floor.prototype.w = 0;
 
   Floor.prototype.h = 0;
@@ -394,25 +483,52 @@ Floor = (function(_super) {
   function Floor(w, h) {
     this.w = w;
     this.h = h;
-    this._geometry = new THREE.PlaneGeometry(w, h, 127, 127);
+    this._geometry = new THREE.PlaneGeometry(w, h, this.w / 10, this.h / 10);
     this._modifyFloor();
-    this._texture = new THREE.MeshBasicMaterial({
-      color: 0x234706,
+    this._material = new THREE.MeshBasicMaterial({
+      color: Colors.floorSummer.getHex(),
       lights: false
     });
-    THREE.Mesh.call(this, this._geometry, this._texture);
+    this._canvas = document.createElement("canvas");
+    this._canvas.width = this._canvasW = ColorChannel.canvas.width;
+    this._canvas.height = this._canvasH = ColorChannel.canvas.height;
+    this._ctx = this._canvas.getContext("2d");
+    this._ctx.fillStyle = "rgb( " + Colors.floorSummer.r * 255 + ", " + Colors.floorSummer.g * 255 + ", " + Colors.floorSummer.b * 255 + " )";
+    this._ctx.fillRect(0, 0, this._canvasW, this._canvasH);
+    this._texture = new THREE.Texture(this._canvas);
+    this._material = new THREE.MeshBasicMaterial({
+      map: this._texture,
+      transparent: false,
+      lights: false
+    });
+    THREE.Mesh.call(this, this._geometry, this._material);
     this.rotation.x = -Math.PI * .5;
   }
 
   Floor.prototype._modifyFloor = function() {
-    var data, i, vertice, vertices, _i, _len;
+    var baseH, baseRatio, baseW, data, i, ratio, vertice, vertices, _i, _len;
     data = HeightData.get();
+    baseRatio = this.h >> 1;
+    baseW = this.w / 10 >> 1;
+    baseH = this.h / 10 >> 1;
     vertices = this._geometry.vertices;
     for (i = _i = 0, _len = vertices.length; _i < _len; i = ++_i) {
       vertice = vertices[i];
-      vertice.z = data[i];
+      ratio = (baseRatio + vertice.y) / this.h;
+      ratio = 1;
+      vertice.z += HeightData.getPixelValue(baseW + vertice.x / 10 >> 0, baseH - vertice.y / 10 >> 0);
     }
     return this._geometry.computeFaceNormals();
+  };
+
+  Floor.prototype.update = function() {
+    this._ctx.fillStyle = "rgb( " + Colors.floorSummer.r * 255 + ", " + Colors.floorSummer.g * 255 + ", " + Colors.floorSummer.b * 255 + " )";
+    this._ctx.fillRect(0, 0, this._canvasW, this._canvasH);
+    this._ctx.save();
+    this._ctx.scale(1, -1);
+    this._ctx.drawImage(ColorChannel.canvas, 0, 0, this._canvasW, -this._canvasH);
+    this._ctx.restore();
+    return this._texture.needsUpdate = true;
   };
 
   return Floor;
@@ -420,6 +536,7 @@ Floor = (function(_super) {
 })(THREE.Mesh);
 
 var Grass,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -433,6 +550,8 @@ Grass = (function(_super) {
   Grass.prototype.h = 0;
 
   Grass.prototype._texture = null;
+
+  Grass.prototype._noiseW = 0;
 
   Grass.prototype._projector = null;
 
@@ -482,21 +601,38 @@ Grass = (function(_super) {
     z: 0.0
   };
 
+  Grass.prototype._rippleStart = new THREE.Vector3(0, 0, 0);
+
+  Grass.prototype._rippleDist = 0;
+
+  Grass.prototype._rippleStr = 0;
+
+  Grass.prototype._rippleSpeed = 0;
+
+  Grass.prototype._rippleSpeedMax = 50;
+
+  Grass.prototype._updateRipple = false;
+
   Grass.prototype._sign = 1;
 
   Grass.prototype._add = 0;
 
-  function Grass(_floor, w, h) {
-    this._floor = _floor;
+  function Grass(w, h) {
     this.w = w;
     this.h = h;
+    this._getProjectedMouse = __bind(this._getProjectedMouse, this);
+    this._generateRipple = __bind(this._generateRipple, this);
+    this.onSummer = __bind(this.onSummer, this);
+    this.onWinter = __bind(this.onWinter, this);
+    this.onGapWinter = __bind(this.onGapWinter, this);
     this._texture = document.getElementById("texture-noise");
+    this._noiseW = this._texture.width;
     this._projector = new THREE.Projector();
     this._vProjector = new THREE.Vector3();
     this._displacementChannelR = new WindDisplacementChannel("map-displacement-r", "texture-displacement-r", this._displacementChannelG = new WindDisplacementChannel("map-displacement-g", "texture-displacement-g", true));
     this._displacementChannelB = new WindDisplacementChannel("map-displacement-b", "texture-displacement-b", true);
     this._colorChannel = new ColorChannel("map-color", "texture-color");
-    this._displacementData = new WindDisplacementData(-w >> 1, 0, w >> 1, -h);
+    this._displacementData = new WindDisplacementData(w, h, -w >> 1, 0, w >> 1, -h);
     this._displacementData.addChannel(this._displacementChannelR);
     this._displacementData.addChannel(this._displacementChannelG);
     this._displacementData.addChannel(this._displacementChannelB);
@@ -504,24 +640,54 @@ Grass = (function(_super) {
     THREE.Object3D.call(this);
     this._generateBlades();
     this._createGrass();
+    winterManager.registerGap(this);
+    winterManager.registerWinter(this);
   }
 
+  Grass.prototype.onGapWinter = function(value) {
+    return this._generateRipple(false, value);
+  };
+
+  Grass.prototype.onWinter = function() {
+    return this._generateRipple(true);
+  };
+
+  Grass.prototype.onSummer = function() {
+    return this._generateRipple(true);
+  };
+
+  Grass.prototype._generateRipple = function(isBig, value) {
+    var pos;
+    pos = this._getProjectedMouse();
+    pos.x += this.w >> 1;
+    pos.z = this.h + pos.z;
+    this._rippleStart = pos;
+    if (isBig) {
+      this._rippleStr = 120;
+    } else {
+      this._rippleStr = 30 * value;
+    }
+    this._rippleDist = 0;
+    this._rippleSpeed = 0;
+    this._updateRipple = true;
+    return this._uniforms.uRippleStart.value = pos;
+  };
+
   Grass.prototype._generateBlades = function() {
-    var availableColors, baseColor, blade, geo, heightValue, i, idx, j, lengthAvailableColors, px, pz, step, v, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _k, _len, _ref;
+    var baseRatio, blade, colorSummer, colorWinter, geo, heightValue, i, idx, j, px, pz, ratio, step, v, vx, vz, xMax, xMin, zMax, zMin, _i, _j, _k, _len, _ref;
     this._colors = [];
+    this._colorsWinter = [];
     this._positions = [];
     this._windRatio = [];
     this._blades = new THREE.Geometry();
     this._vectors = [];
-    baseColor = new THREE.Color(0x3d5d0a);
-    availableColors = [new THREE.Color(0x53dc23), new THREE.Color(0xb3dc23), new THREE.Color(0x23dc46), new THREE.Color(0x74ff2f)];
-    lengthAvailableColors = availableColors.length;
-    step = 160;
+    step = 200;
     idx = 0;
     xMin = 0;
     xMax = this.w;
     zMin = 0;
     zMax = this.h;
+    baseRatio = this.h >> 1;
     heightValue = 0;
     px = xMin;
     pz = zMin;
@@ -529,18 +695,29 @@ Grass = (function(_super) {
     vz = this.h / step;
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
+        if (pz > 1150 || (px < 500 && pz > 600) || (px > 1800 && pz > 800)) {
+          px += vx;
+          continue;
+        }
         blade = new GrassBlade(px, 0, pz);
         this._vectors.push(new WindVectorData(px, pz));
         heightValue = HeightData.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
+        colorSummer = Colors.summer.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
+        colorWinter = Colors.winter.getPixelValue(px / 10 >> 0, pz / 10 >> 0);
+        ratio = 1 - pz / this.h;
+        ratio = 1;
+        heightValue *= ratio;
         geo = blade.geometry;
         _ref = geo.vertices;
         for (_k = 0, _len = _ref.length; _k < _len; _k++) {
           v = _ref[_k];
           if (v.y < 10) {
             this._windRatio[idx] = 0.0;
-            this._colors[idx] = baseColor;
+            this._colors[idx] = Colors.floorSummer;
+            this._colorsWinter[idx] = Colors.floorWinter;
           } else {
-            this._colors[idx] = availableColors[Math.random() * lengthAvailableColors >> 0];
+            this._colors[idx] = colorSummer;
+            this._colorsWinter[idx] = colorWinter;
             this._windRatio[idx] = 1.0;
           }
           v.y += heightValue;
@@ -577,6 +754,7 @@ Grass = (function(_super) {
       lights: true
     };
     this._attributes.aColor.value = this._colors;
+    this._attributes.aColorWinter.value = this._colorsWinter;
     this._attributes.aWindRatio.value = this._windRatio;
     this._attributes.aWindOrientation.value = this._windOrientation = [];
     this._attributes.aWindLength.value = this._windLength = [];
@@ -591,13 +769,19 @@ Grass = (function(_super) {
     this._uniforms.uColorChannel.value = this._colorChannelTexture;
     this._uniforms.uOffsetX.value = 0.0;
     this._uniforms.uZoneW.value = this.w >> 1;
+    this._uniforms.uZoneH.value = this.w >> 1;
     this._uniforms.uFloorW.value = this.w;
-    this._uniforms.uMousePos.value = new THREE.Vector2(stage.mouse.x, stage.mouse.y);
+    this._uniforms.uFloorColorSummer.value = Colors.floorSummer;
+    this._uniforms.uFloorColorWinter.value = Colors.floorWinter;
+    this._uniforms.uGrassBladeHeight.value = GrassBlade.HEIGHT;
     this._uniforms.uWindMapForce.value = THREE.ImageUtils.loadTexture(this._texture.src);
     this._uniforms.uWindScale.value = 1;
     this._uniforms.uWindMin.value = new THREE.Vector2(0, 0);
     this._uniforms.uWindSize.value = new THREE.Vector2(60, 60);
     this._uniforms.uWindDirection.value = new THREE.Vector3(13, 5, 13);
+    this._uniforms.uRippleStart.value = this._rippleStart;
+    this._uniforms.uRippleDist.value = this._rippleDist;
+    this._uniforms.uRippleStr.value = this._rippleStr;
     material = new THREE.ShaderMaterial(params);
     material.side = THREE.DoubleSide;
     return material;
@@ -608,12 +792,29 @@ Grass = (function(_super) {
   };
 
   Grass.prototype.update = function() {
-    var camPos, m, pos;
-    if (this._add > 256) {
+    var pos;
+    if (this._add > this._noiseW) {
       this._add = 0;
     }
     this._add += 1;
     this._uniforms.uOffsetX.value = this._add;
+    pos = this._getProjectedMouse();
+    this._displacementData.update(pos.x, pos.z);
+    this._windDisplacementRTexture.needsUpdate = true;
+    this._windDisplacementGTexture.needsUpdate = true;
+    this._windDisplacementBTexture.needsUpdate = true;
+    this._colorChannelTexture.needsUpdate = true;
+    if (this._updateRipple) {
+      this._rippleSpeed += (this._rippleSpeedMax - this._rippleSpeed) * .05;
+      this._rippleDist += this._rippleSpeed;
+      this._rippleStr *= .95;
+      this._uniforms.uRippleDist.value = this._rippleDist;
+      return this._uniforms.uRippleStr.value = this._rippleStr;
+    }
+  };
+
+  Grass.prototype._getProjectedMouse = function() {
+    var camPos, m, pos;
     this._vProjector.x = (stage.mouse.x / stage.size.w) * 2 - 1;
     this._vProjector.y = -(stage.mouse.y / stage.size.h) * 2 + 1;
     this._vProjector.z = 1;
@@ -623,14 +824,7 @@ Grass = (function(_super) {
     pos = new THREE.Vector3();
     pos.x = this._vProjector.x + (camPos.x - this._vProjector.x) * m;
     pos.z = this._vProjector.z + (camPos.z - this._vProjector.z) * m;
-    this._uniforms.uMousePos.value.x = pos.x;
-    this._uniforms.uMousePos.value.y = pos.y;
-    this._uniforms.uMousePos.value.z = pos.z;
-    this._displacementData.update(pos.x, pos.z);
-    this._windDisplacementRTexture.needsUpdate = true;
-    this._windDisplacementGTexture.needsUpdate = true;
-    this._windDisplacementBTexture.needsUpdate = true;
-    return this._colorChannelTexture.needsUpdate = true;
+    return pos;
   };
 
   return Grass;
@@ -644,6 +838,8 @@ var GrassBlade,
 GrassBlade = (function(_super) {
   __extends(GrassBlade, _super);
 
+  GrassBlade.HEIGHT = 40;
+
   GrassBlade.prototype.geometry = null;
 
   GrassBlade.prototype.texture = null;
@@ -651,8 +847,8 @@ GrassBlade = (function(_super) {
   function GrassBlade(x, y, z) {
     var h, pz, w;
     pz = z - 500;
-    w = 1 + Math.random() * 1;
-    h = 40 + 30 * (1 - (1280 - pz) * .001);
+    w = .25 + .5 * (Size.h - pz) / Size.h + Math.random() * 1;
+    h = GrassBlade.HEIGHT;
     this.geometry = new THREE.PlaneGeometry(w, h, 1, 1);
     this.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, h >> 1, 0));
     this.texture = new THREE.MeshLambertMaterial({
@@ -676,25 +872,308 @@ var Land,
 Land = (function(_super) {
   __extends(Land, _super);
 
+  Land.prototype._grass = null;
+
   Land.prototype._floor = null;
 
+  Land.prototype._snow = null;
+
   function Land() {
+    var h, sky, treesRight, w;
     THREE.Object3D.call(this);
-    this._floor = new Floor(1280, 1280);
-    this.add(this._floor);
-    this._grass = new Grass(this._floor, this._floor.w, this._floor.h);
+    w = Size.w;
+    h = Size.h;
+    HeightData.get();
+    this._grass = new Grass(w, h);
     this.add(this._grass);
+    this._floor = new Floor(w, h);
+    this.add(this._floor);
+    this._snow = new Snow();
+    this.add(this._snow);
+    sky = new Sky();
+    sky.position.z = -Size.h >> 1;
+    sky.position.y = 350;
+    this.add(sky);
+    treesRight = new Trees();
+    treesRight.position.y = 200;
+    treesRight.position.z = -Size.h * .5 + 2 >> 0;
+    this.add(treesRight);
     this.position.z = -500;
     updateManager.register(this);
   }
 
   Land.prototype.update = function() {
-    return this._grass.update();
+    this._floor.update();
+    this._grass.update();
+    return this._snow.update();
   };
 
   return Land;
 
 })(THREE.Object3D);
+
+var Sky,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Sky = (function(_super) {
+  __extends(Sky, _super);
+
+  Sky.prototype._materialBg = null;
+
+  Sky.prototype._materialLight = null;
+
+  Sky.prototype._geometry = null;
+
+  function Sky() {
+    var meshBg, meshLight, textureBg, textureLight;
+    THREE.Object3D.call(this);
+    textureBg = THREE.ImageUtils.loadTexture("img/sky_big.jpg");
+    textureLight = THREE.ImageUtils.loadTexture("img/sky_lights.jpg");
+    this._geometry = new THREE.PlaneGeometry(Size.w * 1.5, 600);
+    this._materialBg = new THREE.MeshBasicMaterial({
+      map: textureBg
+    });
+    this._materialLight = new THREE.MeshBasicMaterial({
+      map: textureLight,
+      transparent: true
+    });
+    meshBg = new THREE.Mesh(this._geometry, this._materialBg);
+    this.add(meshBg);
+    meshLight = new THREE.Mesh(this._geometry, this._materialLight);
+    this.add(meshLight);
+    winterManager.register(this);
+  }
+
+  Sky.prototype.updateWinter = function() {
+    this._materialLight.opacity = 1 - winterManager.percent;
+    return this._materialLight.needUpdate = true;
+  };
+
+  return Sky;
+
+})(THREE.Object3D);
+
+var Trees,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Trees = (function(_super) {
+  __extends(Trees, _super);
+
+  Trees.prototype._materialSnow = null;
+
+  function Trees() {
+    var geometry, materialBg, textureBg, textureSnow;
+    THREE.Object3D.call(this);
+    textureBg = THREE.ImageUtils.loadTexture("img/trees_big.png");
+    textureSnow = THREE.ImageUtils.loadTexture("img/trees_snow.png");
+    geometry = new THREE.PlaneGeometry(Size.w, 256);
+    materialBg = new THREE.MeshBasicMaterial({
+      map: textureBg,
+      transparent: true
+    });
+    this._materialSnow = new THREE.MeshBasicMaterial({
+      map: textureSnow,
+      transparent: true
+    });
+    this._materialSnow.opacity = 0;
+    this.add(new THREE.Mesh(geometry, materialBg));
+    this.add(new THREE.Mesh(geometry, this._materialSnow));
+    winterManager.register(this);
+  }
+
+  Trees.prototype.updateWinter = function() {
+    this._materialSnow.opacity = winterManager.percent;
+    return this._materialSnow.needUpdate = true;
+  };
+
+  return Trees;
+
+})(THREE.Object3D);
+
+var Snow,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Snow = (function(_super) {
+  __extends(Snow, _super);
+
+  Snow.countFlakes = 800;
+
+  Snow.prototype._sizes = null;
+
+  Snow.prototype._times = null;
+
+  Snow.prototype._colors = null;
+
+  Snow.prototype._idx = null;
+
+  Snow.prototype._attributes = null;
+
+  Snow.prototype._uniforms = null;
+
+  Snow.prototype._oldTime = 0.0;
+
+  function Snow() {
+    var geometry, i, particles, vec, vertice, _i, _j, _len, _ref, _ref1;
+    THREE.Object3D.call(this);
+    geometry = new THREE.Geometry;
+    for (i = _i = 0, _ref = Snow.countFlakes; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      vec = new THREE.Vector3(Math.random() * 600, 500, Math.random() * Size.h * 2);
+      geometry.vertices.push(vec);
+    }
+    this._sizes = [];
+    this._times = [];
+    this._colors = [];
+    this._idx = [];
+    _ref1 = geometry.vertices;
+    for (i = _j = 0, _len = _ref1.length; _j < _len; i = ++_j) {
+      vertice = _ref1[i];
+      this._sizes[i] = 30 + Math.random() * 50;
+      this._colors[i] = new THREE.Color(0xffffff);
+      this._colors[i].setHSL(1.0, 0.0, 0.05 + Math.random() * 0.9);
+      this._times[i] = Math.random();
+      this._idx[i] = i;
+    }
+    particles = new THREE.ParticleSystem(geometry, this._getMaterial());
+    particles.position.x = -600;
+    particles.position.z = -Size.h >> 1;
+    this.add(particles);
+    winterManager.register(this);
+  }
+
+  Snow.prototype._getMaterial = function() {
+    var material, params, shader, texture;
+    shader = new SnowShader();
+    this._attributes = shader.attributes;
+    this._attributes.size.value = this._sizes;
+    this._attributes.time.value = this._times;
+    this._attributes.customColor.value = this._colors;
+    this._attributes.idx.value = this._idx;
+    this._uniforms = shader.uniforms;
+    texture = THREE.ImageUtils.loadTexture("img/snowflake.png");
+    this._uniforms.texture.value = texture;
+    this._uniforms.idxVisible.value = Snow.countFlakes;
+    params = {
+      attributes: this._attributes,
+      uniforms: this._uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true
+    };
+    return material = new THREE.ShaderMaterial(params);
+  };
+
+  Snow.prototype.update = function() {
+    var delta, time;
+    time = new Date().getTime();
+    delta = time - this._oldTime;
+    this._oldTime = time;
+    if (!delta || delta > 1000) {
+      delta = 1000 / 60;
+    }
+    return this._uniforms.globalTime.value += delta * 0.00015;
+  };
+
+  Snow.prototype.updateWinter = function() {
+    return this._uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent * 2;
+  };
+
+  return Snow;
+
+})(THREE.Object3D);
+
+var SoundsSingleton, sounds,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+SoundsSingleton = (function() {
+  var SoundsInstance;
+
+  function SoundsSingleton() {}
+
+  SoundsInstance = (function() {
+    SoundsInstance.prototype._soundNormal = null;
+
+    SoundsInstance.prototype._soundWinter = null;
+
+    SoundsInstance.prototype._soundWind = null;
+
+    SoundsInstance.prototype._onAllSoundsLoaded = null;
+
+    SoundsInstance.prototype._loadedCount = 0;
+
+    SoundsInstance.prototype._soundsCount = 2;
+
+    function SoundsInstance() {
+      this._onSoundLoaded = __bind(this._onSoundLoaded, this);
+    }
+
+    SoundsInstance.prototype.init = function() {
+      winterManager.register(this);
+      this._soundWinter.volume(0);
+      return this._soundWinter.play();
+    };
+
+    SoundsInstance.prototype.load = function(onFirstSoundLoaded, _onAllSoundsLoaded) {
+      this._onAllSoundsLoaded = _onAllSoundsLoaded;
+      this._soundNormal = new Howl({
+        urls: ["sounds/Jupiter_Makes_Me_Scream_-_05_-_This_Girl.mp3"],
+        onload: onFirstSoundLoaded,
+        loop: true
+      });
+      this._soundWinter = new Howl({
+        urls: ["sounds/Akashic_Records_-_Bells_On_Xmas_Day__symphonic_orchestra_.mp3"],
+        onload: this._onSoundLoaded,
+        volume: 0.0,
+        loop: true
+      });
+      return this._soundWind = new Howl({
+        urls: ["sounds/137021__jeffreys2__outside-wind.mp3"],
+        onload: this._onSoundLoaded,
+        volume: 0.0,
+        loop: true
+      });
+    };
+
+    SoundsInstance.prototype._onSoundLoaded = function() {
+      this._loadedCount++;
+      if (this._loadedCount === this._soundsCount) {
+        return this._onAllSoundsLoaded();
+      }
+    };
+
+    SoundsInstance.prototype.start = function() {
+      return this._soundNormal.play();
+    };
+
+    SoundsInstance.prototype.startWind = function() {
+      this._soundWind.volume = 1.0;
+      return this._soundWind.play;
+    };
+
+    SoundsInstance.prototype.updateWinter = function() {
+      this._soundWinter.volume(winterManager.percent * 2);
+      return this._soundNormal.volume(1 - winterManager.percent * 2);
+    };
+
+    return SoundsInstance;
+
+  })();
+
+  SoundsSingleton._instance = null;
+
+  SoundsSingleton.get = function() {
+    return this._instance != null ? this._instance : this._instance = new SoundsInstance();
+  };
+
+  return SoundsSingleton;
+
+}).call(this);
+
+sounds = SoundsSingleton.get();
 
 var World,
   __hasProp = {}.hasOwnProperty,
@@ -712,7 +1191,8 @@ World = (function(_super) {
 
   World.prototype._init = function() {
     this._land = new Land();
-    return this.add(this._land);
+    this.add(this._land);
+    return sounds.startWind();
   };
 
   return World;
@@ -725,7 +1205,9 @@ var ColorChannel, ColorDot,
 ColorChannel = (function() {
   ColorChannel.prototype.canvas = null;
 
-  ColorChannel.prototype._size = 0;
+  ColorChannel.prototype.w = 0;
+
+  ColorChannel.prototype.h = 0;
 
   ColorChannel.prototype._ctx = null;
 
@@ -737,60 +1219,89 @@ ColorChannel = (function() {
 
   ColorChannel.prototype._dots = null;
 
+  ColorChannel.canvas = null;
+
   function ColorChannel(idCanvas, idText, canRotate) {
+    this.onSummer = __bind(this.onSummer, this);
+    this.onWinter = __bind(this.onWinter, this);
     this.canvas = document.getElementById(idCanvas);
+    ColorChannel.canvas = this.canvas;
     this._canRotate = canRotate || false;
-    this._size = this.canvas.width;
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
     this._ctx = this.canvas.getContext("2d");
     this._ctx.fillStyle = "rgba( 0, 0, 0, 0 )";
     this._textDisplacement = document.getElementById(idText);
     this._textDisplacementW = this._textDisplacement.width;
     this._textDisplacementH = this._textDisplacement.height;
     this._createDots();
+    winterManager.registerWinter(this);
   }
 
+  ColorChannel.prototype.onWinter = function() {
+    var dot, _i, _len, _ref;
+    _ref = this._dots;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      dot = _ref[_i];
+      dot.winterise();
+    }
+    return winterManager.gotoPercent(1);
+  };
+
+  ColorChannel.prototype.onSummer = function() {
+    var dot, _i, _len, _ref;
+    _ref = this._dots;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      dot = _ref[_i];
+      dot.summerise();
+    }
+    return winterManager.reset();
+  };
+
   ColorChannel.prototype._createDots = function() {
-    var px, py, space, step, x, y, _i, _j, _results;
+    var px, py, spaceX, spaceY, step, x, y, _i, _j;
     this._dots = [];
-    step = 7;
-    space = this._size / step;
+    step = 40;
+    spaceX = this.w / step;
+    spaceY = this.h / step;
     px = 0;
     py = 0;
-    _results = [];
     for (x = _i = 0; 0 <= step ? _i < step : _i > step; x = 0 <= step ? ++_i : --_i) {
       for (y = _j = 0; 0 <= step ? _j < step : _j > step; y = 0 <= step ? ++_j : --_j) {
         this._dots.push(new ColorDot(px, py));
-        px += space;
+        px += spaceX;
       }
       px = 0;
-      _results.push(py += space);
+      py += spaceY;
     }
-    return _results;
   };
 
   ColorChannel.prototype.fill = function(alpha) {};
 
   ColorChannel.prototype.draw = function(x, y) {
-    var dist, dot, dx, dy, _i, _len, _ref, _results;
-    this._ctx.clearRect(0, 0, this._size, this._size);
+    var countActivated, dist, dot, dx, dy, _i, _len, _ref;
+    this._ctx.clearRect(0, 0, this.w, this.h);
+    countActivated = 0;
     _ref = this._dots;
-    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       dot = _ref[_i];
       dx = x - dot.x;
       dy = y - dot.y;
       dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 20) {
+      if (dist < 10) {
         dot.activate();
       }
       dot.update();
+      if (dot.activated) {
+        countActivated++;
+      }
       this._ctx.save();
       this._ctx.globalAlpha = dot.alpha;
       this._ctx.translate(dot.x, dot.y);
       this._ctx.drawImage(this._textDisplacement, -this._textDisplacementW >> 1, -this._textDisplacementH >> 1);
-      _results.push(this._ctx.restore());
+      this._ctx.restore();
     }
-    return _results;
+    winterManager.setPercent(countActivated / this._dots.length);
   };
 
   return ColorChannel;
@@ -808,6 +1319,8 @@ ColorDot = (function() {
 
   ColorDot.prototype.activated = false;
 
+  ColorDot.prototype._idTimeout = -1;
+
   function ColorDot(x, y) {
     this.x = x;
     this.y = y;
@@ -819,7 +1332,16 @@ ColorDot = (function() {
       return;
     }
     this.activated = true;
-    return setTimeout(this.deactivate, 5000);
+    return this._idTimeout = setTimeout(this.deactivate, 20000);
+  };
+
+  ColorDot.prototype.winterise = function() {
+    clearTimeout(this._idTimeout);
+    return this.activated = true;
+  };
+
+  ColorDot.prototype.summerise = function() {
+    return this.activated = false;
   };
 
   ColorDot.prototype.update = function() {
@@ -841,6 +1363,50 @@ ColorDot = (function() {
 
 })();
 
+var ColorData;
+
+ColorData = (function() {
+  ColorData.prototype._w = 0;
+
+  ColorData.prototype._h = 0;
+
+  ColorData.prototype._colors = null;
+
+  function ColorData(img) {
+    var canvas, color, ctx, data, i, _i, _ref;
+    this.img = img;
+    this._w = this.img.width;
+    this._h = this.img.height;
+    canvas = document.createElement("canvas");
+    canvas.width = this._w;
+    canvas.height = this._h;
+    ctx = canvas.getContext("2d");
+    ctx.drawImage(this.img, 0, 0);
+    data = ctx.getImageData(0, 0, this._w, this._h).data;
+    this._colors = [];
+    for (i = _i = 0, _ref = data.length; _i < _ref; i = _i += 4) {
+      color = new THREE.Color();
+      color.r = data[i] / 255;
+      color.g = data[i + 1] / 255;
+      color.b = data[i + 2] / 255;
+      this._colors.push(color);
+    }
+  }
+
+  ColorData.prototype.getPixelValue = function(x, y) {
+    if (x > this._w - 1) {
+      x = this._w - 1;
+    }
+    if (y > this._h - 1) {
+      y = this._h - 1;
+    }
+    return this._colors[y * this._w + x];
+  };
+
+  return ColorData;
+
+})();
+
 var HeightData;
 
 HeightData = (function() {
@@ -850,17 +1416,24 @@ HeightData = (function() {
 
   HeightData._data = null;
 
+  HeightData.prototype._w = 0;
+
+  HeightData.prototype._h = 0;
+
   HeightData.get = function() {
-    var canvas, ctx, data, i, j, _i, _ref;
+    var canvas, ctx, data, i, j, texture, _i, _ref;
     if (HeightData._data) {
       return HeightData._data;
     }
+    texture = document.getElementById("texture-height");
+    this._w = texture.width;
+    this._h = texture.height;
     canvas = document.createElement("canvas");
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = this._w;
+    canvas.height = this._h;
     ctx = canvas.getContext("2d");
-    ctx.drawImage(document.getElementById("texture-height"), 0, 0);
-    HeightData._rawData = data = ctx.getImageData(0, 0, 128, 128).data;
+    ctx.drawImage(texture, 0, 0);
+    HeightData._rawData = data = ctx.getImageData(0, 0, this._w, this._h).data;
     HeightData._data = [];
     j = 0;
     for (i = _i = 0, _ref = data.length; _i < _ref; i = _i += 4) {
@@ -870,7 +1443,13 @@ HeightData = (function() {
   };
 
   HeightData.getPixelValue = function(x, y) {
-    return HeightData._data[y * 128 + x];
+    if (x > this._w - 1) {
+      x = this._w - 1;
+    }
+    if (y > this._h - 1) {
+      y = this._h - 1;
+    }
+    return HeightData._data[y * this._w + x];
   };
 
   return HeightData;
@@ -884,7 +1463,9 @@ WindDisplacementChannel = (function() {
 
   WindDisplacementChannel.prototype._canRotate = false;
 
-  WindDisplacementChannel.prototype._size = 0;
+  WindDisplacementChannel.prototype.w = 0;
+
+  WindDisplacementChannel.prototype.h = 0;
 
   WindDisplacementChannel.prototype._ctx = null;
 
@@ -897,7 +1478,8 @@ WindDisplacementChannel = (function() {
   function WindDisplacementChannel(idCanvas, idText, canRotate) {
     this.canvas = document.getElementById(idCanvas);
     this._canRotate = canRotate || false;
-    this._size = this.canvas.width;
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
     this._ctx = this.canvas.getContext("2d");
     this._ctx.fillStyle = "rgba( 128, 128, 128, 1 )";
     this._textDisplacement = document.getElementById(idText);
@@ -907,12 +1489,13 @@ WindDisplacementChannel = (function() {
 
   WindDisplacementChannel.prototype.fill = function(alpha) {
     this._ctx.fillStyle = "rgba( 128, 128, 128, " + alpha + ")";
-    return this._ctx.fillRect(0, 0, this._size, this._size);
+    return this._ctx.fillRect(0, 0, this.w, this.h);
   };
 
   WindDisplacementChannel.prototype.draw = function(x, y, orientation) {
     this._ctx.save();
     this._ctx.translate(x, y);
+    this._ctx.scale(.75, .75);
     if (this._canRotate) {
       this._ctx.rotate(orientation);
     }
@@ -939,7 +1522,9 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._channels = null;
 
-  WindDisplacementData.prototype._size = 256;
+  WindDisplacementData.prototype._sizeW = 0;
+
+  WindDisplacementData.prototype._sizeH = 0;
 
   WindDisplacementData.prototype._ctx = null;
 
@@ -958,7 +1543,7 @@ WindDisplacementData = (function() {
 
   WindDisplacementData.prototype._speed = 0.0;
 
-  function WindDisplacementData(_xMin, _yMin, _xMax, _yMax) {
+  function WindDisplacementData(sizeW, sizeH, _xMin, _yMin, _xMax, _yMax) {
     this._xMin = _xMin;
     this._yMin = _yMin;
     this._xMax = _xMax;
@@ -967,6 +1552,10 @@ WindDisplacementData = (function() {
   }
 
   WindDisplacementData.prototype.addChannel = function(channel) {
+    if (this._channels.length === 0) {
+      this._sizeW = channel.w;
+      this._sizeH = channel.h;
+    }
     return this._channels.push(channel);
   };
 
@@ -1002,7 +1591,7 @@ WindDisplacementData = (function() {
         this._orientation -= Math.PI * 2;
       }
       this._orientation += (newOrientation - this._orientation) * .1;
-      this._alpha += (.05 - this._alpha) * .05;
+      this._alpha += (.045 - this._alpha) * .05;
       if (this._alpha > .5) {
         this._drawCanvas();
         _ref1 = this._channels;
@@ -1024,7 +1613,7 @@ WindDisplacementData = (function() {
       this._speed += dist * .05;
       this._speed += -this._speed * .05;
     } else {
-      this._alpha += (1 - this._alpha) * .025;
+      this._alpha += (1 - this._alpha) * .045;
       a = this._orientation;
       this._pOrientation.x += Math.cos(a) * this._speed;
       this._pOrientation.y += Math.sin(a) * this._speed;
@@ -1063,7 +1652,7 @@ WindDisplacementData = (function() {
       value = xMax;
     }
     percent = value / xMax;
-    return percent * this._size;
+    return percent * this._sizeW;
   };
 
   WindDisplacementData.prototype._scaleY = function(value) {
@@ -1077,7 +1666,7 @@ WindDisplacementData = (function() {
       value = yMax;
     }
     percent = value / yMax;
-    return percent * this._size;
+    return percent * this._sizeH;
   };
 
   return WindDisplacementData;
@@ -1130,6 +1719,23 @@ WindVectorData = (function() {
 
 })();
 
+var Colors;
+
+Colors = (function() {
+  function Colors() {}
+
+  Colors.floorSummer = new THREE.Color(0x203806);
+
+  Colors.floorWinter = new THREE.Color(0x04253e);
+
+  Colors.summer = null;
+
+  Colors.winter = null;
+
+  return Colors;
+
+})();
+
 var EngineSingleton, engine;
 
 EngineSingleton = (function() {
@@ -1152,33 +1758,61 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype.scene = null;
 
-    EngineInstance.prototype.init = function(container) {
+    EngineInstance.prototype._composer = null;
+
+    EngineInstance.prototype._depthTarget = null;
+
+    EngineInstance.prototype.init = function(container, isHighDef) {
       this.renderer = new THREE.WebGLRenderer({
-        alpha: false
+        alpha: false,
+        antialias: false,
+        precision: "lowp",
+        stencil: false,
+        preserveDrawingBuffer: false
       });
-      this.renderer.setClearColor(0x416ca3, 1);
+      this.renderer.sortObjects = false;
+      this.renderer.setClearColor(0x031a3f, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
-      this.camera = new THREE.PerspectiveCamera(45, stage.size.w / stage.size.h, 1, 10000);
-      this.camera.position.set(0, 300, 250);
-      this.camera.lookAt(new THREE.Vector3(0, 0, -1280));
+      this.camera = new THREE.PerspectiveCamera(50, stage.size.w / stage.size.h, 1, 3000);
+      this.camera.position.set(0, 250, 250);
+      this.camera.lookAt(new THREE.Vector3(0, 50, -Size.h / 2));
       this.scene = new THREE.Scene();
-      this._initLights();
+      if (isHighDef) {
+        this._initPostProcessing();
+      }
       return updateManager.register(this);
     };
 
-    EngineInstance.prototype._initLights = function() {
-      var ambient, pointLight;
-      ambient = new THREE.AmbientLight(0x8b937f);
-      this.scene.add(ambient);
-      pointLight = new THREE.PointLight(0x799d5a, 2, 1500);
-      pointLight.position.set(50, 50, 50);
-      return this.scene.add(pointLight);
+    EngineInstance.prototype._initPostProcessing = function() {
+      var effectCopy, effectVignette, renderPass, renderTarget;
+      this.renderer.autoClear = false;
+      renderTarget = new THREE.WebGLRenderTarget(stage.size.w * window.devicePixelRatio, stage.size.h * window.devicePixelRatio, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBFormat,
+        stencilBuffer: false
+      });
+      this._composer = new THREE.EffectComposer(this.renderer, renderTarget);
+      renderPass = new THREE.RenderPass(this.scene, this.camera);
+      this._composer.addPass(renderPass);
+      this._composer.addPass(new THREE.BloomPass(0.5));
+      effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
+      effectVignette.uniforms.offset.value = 1.0;
+      effectVignette.uniforms.darkness.value = 1.05;
+      effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+      effectCopy.renderToScreen = true;
+      return this._composer.addPass(effectCopy);
     };
 
     EngineInstance.prototype.update = function() {
-      return this.renderer.render(this.scene, this.camera);
+      if (this._composer) {
+        console.log("composer");
+        return this._composer.render();
+      } else {
+        return this.renderer.render(this.scene, this.camera);
+      }
     };
 
     return EngineInstance;
@@ -1196,6 +1830,19 @@ EngineSingleton = (function() {
 })();
 
 engine = EngineSingleton.get();
+
+var Size;
+
+Size = (function() {
+  function Size() {}
+
+  Size.w = 2560;
+
+  Size.h = 1280;
+
+  return Size;
+
+})();
 
 var StageSingleton, stage,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -1345,21 +1992,289 @@ UpdateManagerSingleton = (function() {
 
 updateManager = UpdateManagerSingleton.get();
 
-var Main;
+var WinterManagerSingleton, winterManager,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+WinterManagerSingleton = (function() {
+  var WinterManagerInstance;
+
+  function WinterManagerSingleton() {}
+
+  WinterManagerInstance = (function() {
+    WinterManagerInstance.prototype.percent = 0;
+
+    WinterManagerInstance.prototype._listeners = null;
+
+    WinterManagerInstance.prototype._listenersGap = null;
+
+    WinterManagerInstance.prototype._listenersWinter = null;
+
+    WinterManagerInstance.prototype._isWinter = false;
+
+    WinterManagerInstance.prototype._toPercent = 0;
+
+    function WinterManagerInstance() {
+      this._notifySummer = __bind(this._notifySummer, this);
+      this._notifyWinter = __bind(this._notifyWinter, this);
+      this._listeners = [];
+      this._listenersGap = [];
+      this._listenersWinter = [];
+    }
+
+    WinterManagerInstance.prototype.register = function(listener) {
+      return this._listeners.push(listener);
+    };
+
+    WinterManagerInstance.prototype.registerGap = function(listener) {
+      return this._listenersGap.push(listener);
+    };
+
+    WinterManagerInstance.prototype.registerWinter = function(listener) {
+      return this._listenersWinter.push(listener);
+    };
+
+    WinterManagerInstance.prototype.setPercent = function(percent) {
+      var listener, _i, _len, _ref, _results;
+      percent -= .1;
+      if (percent < 0) {
+        percent = 0;
+      }
+      percent *= 2;
+      if (percent > 1) {
+        percent = 1;
+      }
+      if (percent === this.percent) {
+        return;
+      }
+      console.log(percent);
+      if (this.percent < .1 && percent >= .1) {
+        this._notifyGap(.15);
+      }
+      if (this.percent < .2 && percent >= .2) {
+        this._notifyGap(.3);
+      } else if (this.percent < .3 && percent >= .3) {
+        this._notifyGap(1);
+      } else if (this.percent < .4 && percent >= .4) {
+        this._notifyWinter();
+      }
+      this.percent = percent;
+      _ref = this._listeners;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        _results.push(listener.updateWinter());
+      }
+      return _results;
+    };
+
+    WinterManagerInstance.prototype._notifyGap = function(value) {
+      var listener, _i, _len, _ref, _results;
+      _ref = this._listenersGap;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        _results.push(listener.onGapWinter.call(this, value));
+      }
+      return _results;
+    };
+
+    WinterManagerInstance.prototype._notifyWinter = function() {
+      var listener, _i, _len, _ref;
+      if (this._isWinter) {
+        return;
+      }
+      this._isWinter = true;
+      _ref = this._listenersWinter;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        listener.onWinter();
+      }
+      setTimeout(this._notifySummer, 22000);
+    };
+
+    WinterManagerInstance.prototype._notifySummer = function() {
+      var listener, _i, _len, _ref;
+      _ref = this._listenersWinter;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        listener.onSummer();
+      }
+      this._isWinter = false;
+    };
+
+    WinterManagerInstance.prototype.gotoPercent = function(value) {
+      this._toPercent = value;
+      return updateManager.register(this);
+    };
+
+    WinterManagerInstance.prototype.reset = function() {
+      this._toPercent = 0;
+      return updateManager.unregister(this);
+    };
+
+    WinterManagerInstance.prototype.update = function() {
+      var p;
+      p = this.percent + (this._toPercent - this.percent) * .05;
+      return this.setPercent(p);
+    };
+
+    return WinterManagerInstance;
+
+  })();
+
+  WinterManagerSingleton.instance = null;
+
+  WinterManagerSingleton.get = function() {
+    return this.instance != null ? this.instance : this.instance = new WinterManagerInstance();
+  };
+
+  return WinterManagerSingleton;
+
+}).call(this);
+
+winterManager = WinterManagerSingleton.get();
+
+var LoadingScreen, Main, loadingScreen,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+LoadingScreen = (function() {
+  LoadingScreen.prototype._backgroundImage = null;
+
+  LoadingScreen.prototype._w = null;
+
+  LoadingScreen.prototype._h = null;
+
+  LoadingScreen.prototype._loader = null;
+
+  LoadingScreen.prototype._isReadyToLaunch = false;
+
+  LoadingScreen.prototype._everythingLoaded = false;
+
+  function LoadingScreen() {
+    this._launchHighDef = __bind(this._launchHighDef, this);
+    this._launchLowDef = __bind(this._launchLowDef, this);
+    this._removeLoading = __bind(this._removeLoading, this);
+    this._onItemLoaded = __bind(this._onItemLoaded, this);
+    this._onAllSoundLoaded = __bind(this._onAllSoundLoaded, this);
+    this._backgroundImage = document.getElementById("background_loading");
+    this._w = this._backgroundImage.width;
+    this._h = this._backgroundImage.height;
+    sounds.load(this._onNormalSoundLoaded, this._onAllSoundLoaded);
+    this.resize();
+  }
+
+  LoadingScreen.prototype._onNormalSoundLoaded = function() {
+    return sounds.start();
+  };
+
+  LoadingScreen.prototype._onAllSoundLoaded = function() {
+    this._loader = new PxLoader();
+    this._loader.addImage("img/sky_big.jpg");
+    this._loader.addImage("img/sky_lights.jpg");
+    this._loader.addImage("img/trees_big.png");
+    this._loader.addImage("img/trees_snow.png");
+    this._loader.addCompletionListener(this._onItemLoaded);
+    this._loader.start();
+    return $("#loading-details").html("...SOME SWEET GIFTS FOR YOUR EYES...");
+  };
+
+  LoadingScreen.prototype._onItemLoaded = function() {
+    this._everythingLoaded = true;
+    if (this._isReadyToLaunch) {
+      return this._launch();
+    } else {
+      return $("#loading-details").html("...SOME MAGIC FOR YOUR MIND...");
+    }
+  };
+
+  LoadingScreen.prototype.readyToLaunch = function() {
+    this._isReadyToLaunch = true;
+    if (this._everythingLoaded) {
+      return this._launch();
+    }
+  };
+
+  LoadingScreen.prototype._launch = function() {
+    $("#loading-text").html("CHOOSE THE QUALITY OF YOUR JOURNEY:");
+    $("#loading-details").html("(YOU CAN ALWAYS TRY THE OTHER ONE BY COMING BACK)");
+    $("#bts").addClass("visible");
+    $("#bt_low-def").on("click", this._launchLowDef);
+    return $("#bt_high-def").on("click", this._launchHighDef);
+  };
+
+  LoadingScreen.prototype._clear = function() {
+    $("#bt_low-def").unbind();
+    $("#bt_high-def").unbind();
+    $("#content").addClass("invisible");
+    $("#loading-text").addClass("invisible");
+    $("#loading-details").addClass("invisible");
+    $("#bts").addClass("invisible");
+    $("#background_loading").addClass("invisible");
+    return setTimeout(this._removeLoading, 10000);
+  };
+
+  LoadingScreen.prototype._removeLoading = function() {
+    return $("#loading").remove();
+  };
+
+  LoadingScreen.prototype._launchLowDef = function() {
+    console.log("low def");
+    new Main(false);
+    return this._clear();
+  };
+
+  LoadingScreen.prototype._launchHighDef = function() {
+    console.log("high def");
+    new Main(true);
+    return this._clear();
+  };
+
+  LoadingScreen.prototype.resize = function() {
+    var size;
+    size = Utils.resize(stage.size.w, stage.size.h, this._w, this._h);
+    this._backgroundImage.style.left = size.x + "px";
+    this._backgroundImage.style.top = size.y + "px";
+    this._backgroundImage.width = size.w;
+    return this._backgroundImage.height = size.h;
+  };
+
+  return LoadingScreen;
+
+})();
 
 Main = (function() {
-  function Main() {
+  function Main(isHighDef) {
     var world;
-    engine.init(document.getElementById("scene"));
-    engine.scene.add(new Axis(1000));
+    engine.init(document.getElementById("scene", isHighDef));
+    Colors.summer = new ColorData(document.getElementById("color-summer"));
+    Colors.winter = new ColorData(document.getElementById("color-winter"));
     world = new World();
     engine.scene.add(world);
-    updateManager.enableDebugMode();
+    sounds.init();
     updateManager.start();
+    winterManager.registerWinter(this);
   }
+
+  Main.prototype.onWinter = function() {
+    $("#title_end").removeClass("invisible");
+    return $("#title_end").addClass("visible");
+  };
+
+  Main.prototype.onSummer = function() {
+    $("#title_end").removeClass("visible");
+    return $("#title_end").addClass("invisible");
+  };
 
   return Main;
 
 })();
 
-new Main();
+loadingScreen = new LoadingScreen();
+
+$(window).on("load", function() {
+  return loadingScreen.readyToLaunch();
+});
+
+$(window).on("resize", function() {
+  return loadingScreen.resize();
+});

@@ -7,7 +7,8 @@ class WindDisplacementData
     _canRotate: false
 
     _channels: null
-    _size: 256
+    _sizeW: 0
+    _sizeH: 0
     _ctx: null
 
     _pOrientation: { x: 0.0, y: 0.0 }
@@ -19,10 +20,14 @@ class WindDisplacementData
 
     _speed: 0.0
 
-    constructor: ( @_xMin, @_yMin, @_xMax, @_yMax ) ->
+    constructor: ( sizeW, sizeH, @_xMin, @_yMin, @_xMax, @_yMax ) ->
         @_channels = []
 
     addChannel: ( channel ) ->
+        if @_channels.length == 0
+            @_sizeW = channel.w
+            @_sizeH = channel.h
+        
         @_channels.push channel
 
     update: ( x, y ) ->
@@ -51,7 +56,7 @@ class WindDisplacementData
             @_orientation -= Math.PI * 2 while newOrientation - @_orientation < -Math.PI
             @_orientation += ( newOrientation - @_orientation ) * .1
 
-            @_alpha += ( .05 - @_alpha ) * .05
+            @_alpha += ( .045 - @_alpha ) * .05
             if @_alpha > .5
                 @_drawCanvas()
                 channel.fill @_alpha for channel in @_channels
@@ -66,7 +71,7 @@ class WindDisplacementData
             @_speed += dist * .05
             @_speed += - @_speed * .05
         else
-            @_alpha += ( 1 - @_alpha ) * .025
+            @_alpha += ( 1 - @_alpha ) * .045
 
             a = @_orientation
             @_pOrientation.x += Math.cos( a ) * @_speed
@@ -93,7 +98,7 @@ class WindDisplacementData
         value = xMax if value > xMax
         percent = value / xMax
 
-        return percent * @_size
+        return percent * @_sizeW
 
     _scaleY: ( value ) ->
         yMin = 0 - @_yMin
@@ -103,7 +108,7 @@ class WindDisplacementData
         value = yMax if value < yMax
         percent = value / yMax
 
-        return percent * @_size
+        return percent * @_sizeH
 
                 
 

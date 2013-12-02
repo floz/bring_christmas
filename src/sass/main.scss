@@ -1,9 +1,28 @@
+ @import "compass/css3/transform";
+ @import "compass/css3/border-radius";
+ @import "compass/css3/transition";
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
 body {
     background:#fff;
     padding:0;
     margin:0;
     font-weight: bold;
     overflow:hidden;
+    font-family: 'TradeGothic';
+}
+
+#scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    // @include transform-origin( 0, 0, 0 );
+    // @include scale3d( 2.0, 2.0, 1.0 );
 }
 
 #textures {
@@ -11,8 +30,123 @@ body {
 }
 
 #maps {
-    // display: none;
+    display: none;
     position: absolute;
     right: 0;
     top: 0;
+}
+
+#colors {
+    display: none;
+}
+
+#loading {
+    position: absolute;
+    z-index: 1;
+}
+
+#background_loading {
+    position: relative;
+    opacity: 1;
+    &.invisible {
+        @include transition( opacity 2s ease-out );
+        @include transition-delay( 0.5s );
+        opacity: 0;
+    }
+}
+
+#content {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    margin-left: -400px;
+    width: 800px;
+    height: 436px;
+    opacity: 1;
+
+    &.invisible {
+        @include transition( opacity 2s ease-out );
+        @include transition-delay( 3s );
+        opacity: 0;
+    }
+}
+
+#loading-text {
+    color: #fff;
+    text-align: center;
+    position: relative;
+    margin-top: 20px;
+    font-size: 18px;
+    opacity: 1;
+
+    &.invisible {
+        @include transition( opacity 2s ease-out );
+        @include transition-delay( 1s );
+        opacity: 0;
+    }
+}
+
+#loading-details {
+    text-align: center;
+    position: relative;
+    margin-top: 5px;
+    color: #fff;
+    font-size: 12px;
+    opacity: 1;
+
+    &.invisible {
+        @include transition( opacity 2s ease-out );
+        @include transition-delay( 1s );
+        opacity: 0;
+    }
+}
+
+#title_end {
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    margin-left: -265px;
+    opacity: 0;
+
+    &.visible {
+        @include transition( opacity 1s ease-out );
+        opacity: 1;
+    }
+
+    &.invisible {
+        @include transition( opacity 2s ease-out );
+        opacity: 0;
+    }
+}
+
+#bts {
+    position: relative;
+    margin-top: 30px;
+    text-align: center;
+    opacity: 0;
+
+    &.visible {
+        @include transition( all 2s ease-out );
+        opacity: 1;
+    }
+
+    &.invisible {
+        @include transition( all 0.8s ease-out );
+        opacity: 0;
+    }
+}
+
+.bt {
+    border: 2px solid rgba( 255, 255, 255, .75 );
+    padding: 15px 20px 12px 20px;
+    margin-right: 10px;
+    text-decoration: none;
+    color: #fff;
+    background-color: rgba( 255, 255, 255, .25 );
+    font-size: 16px;
+    @include border-radius( 18px );
+
+    &:hover {
+        background-color: rgba( 255, 255, 255, .4 );
+    }
 }

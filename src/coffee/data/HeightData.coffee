@@ -1,28 +1,36 @@
 class HeightData
 
-	@_rawData: null
-	@_data: null
+    @_rawData: null
+    @_data: null
 
-	@get: ->
-		return HeightData._data if HeightData._data
+    _w: 0
+    _h: 0
 
-		canvas = document.createElement "canvas"
-		canvas.width = 128
-		canvas.height = 128
+    @get: ->
+        return HeightData._data if HeightData._data
 
-		ctx = canvas.getContext "2d"
-		ctx.drawImage document.getElementById( "texture-height" ), 0, 0
-		HeightData._rawData = data = ctx.getImageData( 0, 0, 128, 128 ).data
+        texture = document.getElementById( "texture-height" )
+        @_w = texture.width
+        @_h = texture.height
 
-		HeightData._data = []
+        canvas = document.createElement "canvas"
+        canvas.width = @_w
+        canvas.height = @_h
 
-		j = 0
-		for i in [ 0...data.length ] by 4
-			HeightData._data[ j++ ] = data[ i ]
+        ctx = canvas.getContext "2d"
+        ctx.drawImage texture, 0, 0
+        HeightData._rawData = data = ctx.getImageData( 0, 0, @_w, @_h ).data
 
+        HeightData._data = []
 
-		HeightData._data
+        j = 0
+        for i in [ 0...data.length ] by 4
+            HeightData._data[ j++ ] = data[ i ]
 
-	@getPixelValue: ( x, y ) ->
-		HeightData._data[ y * 128 + x ]
+        HeightData._data
+
+    @getPixelValue: ( x, y ) ->
+        x = @_w - 1 if x > @_w - 1
+        y = @_h - 1 if y > @_h - 1
+        HeightData._data[ y * @_w + x ]
 
