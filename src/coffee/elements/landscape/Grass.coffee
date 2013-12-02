@@ -71,13 +71,16 @@ class Grass extends THREE.Object3D
     onWinter: =>
         @_generateRipple true
 
+    onSummer: =>
+        @_generateRipple true
+
     _generateRipple: ( isBig, value ) =>
         pos = @_getProjectedMouse()
         pos.x += @w >> 1
         pos.z = @h + pos.z
 
         @_rippleStart = pos
-        if isBig then @_rippleStr = 80 else @_rippleStr = 15 * value
+        if isBig then @_rippleStr = 120 else @_rippleStr = 30 * value
         @_rippleDist = 0
         @_rippleSpeed = 0
         @_updateRipple = true
@@ -215,10 +218,6 @@ class Grass extends THREE.Object3D
         @_uniforms.uOffsetX.value = @_add
 
         pos = @_getProjectedMouse()
-
-        # @_uniforms.uMousePos.value.x = pos.x
-        # @_uniforms.uMousePos.value.y = pos.y
-        # @_uniforms.uMousePos.value.z = pos.z
 
         @_displacementData.update pos.x, pos.z
         @_windDisplacementRTexture.needsUpdate = true

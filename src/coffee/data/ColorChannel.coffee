@@ -32,7 +32,13 @@ class ColorChannel
         for dot in @_dots
             dot.winterise()
 
-        winterManager.setPercent 1
+        winterManager.gotoPercent 1
+
+    onSummer: =>
+        for dot in @_dots
+            dot.summerise()
+
+        winterManager.gotoPercent 0
 
     _createDots: ->
         @_dots = []
@@ -99,6 +105,9 @@ class ColorDot
     winterise: ->
         clearTimeout @_idTimeout
         @activated = true
+
+    summerise: ->
+        @activated = false
 
     update: ->
         if @activated

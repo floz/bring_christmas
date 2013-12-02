@@ -101,6 +101,8 @@ class WindShader
             "varying float vColorRatio;"
             "varying float vFloorColorPercent;"
 
+            "varying float vRippleValue;"
+
             "#ifdef DOUBLE_SIDED"
 
                 "varying vec3 vLightBack;"
@@ -193,6 +195,7 @@ class WindShader
                     # RIPPLE
                     ##
 
+                    "vRippleValue = 0.0;"
                     "if ( uRippleStr != 0.0 ) {"
                         "float dx = uRippleStart.x - aPosition.x;"
                         "float dz = uRippleStart.z - aPosition.z;"
@@ -201,10 +204,12 @@ class WindShader
 
                         "float diff = dist - uRippleDist;"
                         "if ( diff < 0.0 ) diff = -diff;"
-                        "if( diff < 50.0 ) {"
-                            "pos.y += uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
-                            "pos.x += -cos( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
-                            "pos.z += -sin( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
+                        "if( diff < 100.0 ) {"
+                            "vRippleValue = diff / 100.0;"
+                            "float ripplePercent = ( 1.0 - vRippleValue );"
+                            "pos.y += uRippleStr * ripplePercent * aWindRatio;"
+                            "pos.x += -cos( dir ) * uRippleStr * ripplePercent * aWindRatio;"
+                            "pos.z += -sin( dir ) * uRippleStr * ripplePercent * aWindRatio;"
                         "}"
                     "}"
 
@@ -258,6 +263,8 @@ class WindShader
             "varying float vFloorColorPercent;"
             # "varying float vWindForce;"
 
+            "varying float vRippleValue;"
+
             "#ifdef DOUBLE_SIDED"
 
                 "varying vec3 vLightBack;"
@@ -288,6 +295,11 @@ class WindShader
                 "newColor.r = newColor.r + ( floorColor.r - newColor.r ) * vFloorColorPercent;"
                 "newColor.g = newColor.g + ( floorColor.g - newColor.g ) * vFloorColorPercent;"
                 "newColor.b = newColor.b + ( floorColor.b - newColor.b ) * vFloorColorPercent;"
+
+                "vec3 rippleColor = vec3( 1.0, 1.0, 1.0 );"
+                "newColor.r = newColor.r + ( rippleColor.r - newColor.r ) * vRippleValue * 0.25;"
+                "newColor.g = newColor.g + ( rippleColor.g - newColor.g ) * vRippleValue * 0.25;"
+                "newColor.b = newColor.b + ( rippleColor.b - newColor.b ) * vRippleValue * 0.25;"
 
                 "gl_FragColor = vec4( newColor.rgb, opacity );"
 

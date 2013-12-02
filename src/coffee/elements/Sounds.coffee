@@ -4,10 +4,11 @@ class SoundsSingleton
 
         _soundNormal: null
         _soundWinter: null
+        _soundWind: null
 
         _onAllSoundsLoaded: null
         _loadedCount: 0
-        _soundsCount: 2
+        _soundsCount: 3
 
         constructor: ->
             
@@ -28,6 +29,12 @@ class SoundsSingleton
                 onload: _onAllSoundsLoaded
                 volume: 0.0
                 loop: true
+
+            @_soundWind = new Howl
+                urls: [ "sounds/137021__jeffreys2__outside-wind.mp3" ]
+                onload: _onAllSoundsLoaded
+                volume: 0.0
+                loop: true
         
         _onSoundLoaded: ->
             @_loadedCount++
@@ -35,6 +42,10 @@ class SoundsSingleton
 
         start: ->
             @_soundNormal.play()
+
+        startWind: ->
+            @_soundWind.volume = 1.0
+            @_soundWind.play
 
         updateWinter: ->
             @_soundWinter.volume winterManager.percent * 2

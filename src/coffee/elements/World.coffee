@@ -1,11 +1,13 @@
 class World extends THREE.Object3D
 
-	_land: null
+    _land: null
 
-	constructor: ->
-		THREE.Object3D.call @
-		@_init()
+    constructor: ->
+        THREE.Object3D.call @
+        @_init()
 
-	_init: ->
-		@_land = new Land()
-		@.add @_land
+    _init: ->
+        @_land = new Land()
+        @.add @_land
+
+        sounds.startWind()

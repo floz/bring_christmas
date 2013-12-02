@@ -217,9 +217,9 @@ WindShader = (function() {
     }
   ]);
 
-  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute vec3 aColorWinter;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uZoneH;", "uniform float uFloorW;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "uniform float uGrassBladeHeight;", "uniform vec3 uRippleStart;", "uniform float uRippleDist;", "uniform float uRippleStr;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec2 vPercent;", "varying float vColorRatio;", "varying float vFloorColorPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float baseY = position.y;", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windMod = ( 1.0 - vWindForce ) * aWindRatio;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / uZoneW * 0.5, aPosition.z / uZoneH );", "float r = texture2D( uWindDisplacementR, percent ).r;", "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "if ( g >= 0.405 && g <= 0.505 ) g = 0.5;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "if ( b >= 0.405 && b <= 0.505 ) b = 0.5;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "if ( uRippleStr != 0.0 ) {", "float dx = uRippleStart.x - aPosition.x;", "float dz = uRippleStart.z - aPosition.z;", "float dist = sqrt( dx * dx + dz * dz );", "float dir = atan( dz, dx );", "float diff = dist - uRippleDist;", "if ( diff < 0.0 ) diff = -diff;", "if( diff < 50.0 ) {", "pos.y += uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;", "pos.x += -cos( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;", "pos.z += -sin( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;", "}", "}", "if ( aWindRatio == 0.0 ) {", "vFloorColorPercent = 1.0;", "} else {", "vFloorColorPercent = ( baseY - pos.y ) / ( uGrassBladeHeight / 6.0 );", "if ( vFloorColorPercent < 0.0 ) vFloorColorPercent = 0.0;", "if ( vFloorColorPercent > 1.0 ) vFloorColorPercent = 1.0;", "}", "vPercent = percent;", "vColorRatio = aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "vColorWinter = aColorWinter;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
+  WindShader.prototype.vertexShader = ["#define LAMBERT", "attribute vec3 aColor;", "attribute vec3 aColorWinter;", "attribute float aWindRatio;", "attribute float aWindOrientation;", "attribute float aWindLength;", "attribute vec3 aPosition;", "uniform float uOffsetX;", "uniform float uZoneW;", "uniform float uZoneH;", "uniform float uFloorW;", "uniform sampler2D uWindMapForce;", "uniform float uWindScale;", "uniform vec2 uWindMin;", "uniform vec2 uWindSize;", "uniform vec3 uWindDirection;", "uniform sampler2D uWindDisplacementR;", "uniform sampler2D uWindDisplacementG;", "uniform sampler2D uWindDisplacementB;", "uniform float uGrassBladeHeight;", "uniform vec3 uRippleStart;", "uniform float uRippleDist;", "uniform float uRippleStr;", "varying vec3 vLightFront;", "varying float vWindForce;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec2 vPercent;", "varying float vColorRatio;", "varying float vFloorColorPercent;", "varying float vRippleValue;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["map_pars_vertex"], THREE.ShaderChunk["lightmap_pars_vertex"], THREE.ShaderChunk["envmap_pars_vertex"], THREE.ShaderChunk["lights_lambert_pars_vertex"], THREE.ShaderChunk["color_pars_vertex"], THREE.ShaderChunk["morphtarget_pars_vertex"], THREE.ShaderChunk["skinning_pars_vertex"], THREE.ShaderChunk["shadowmap_pars_vertex"], "float convertToRange( float value, vec2 rSrc, vec2 rDest ) {", "return ( ( value - rSrc.x ) / ( rSrc.y - rSrc.x ) ) * ( rDest.y - rDest.x ) + rDest.x;", "}", "void main() {", THREE.ShaderChunk["map_vertex"], THREE.ShaderChunk["lightmap_vertex"], THREE.ShaderChunk["color_vertex"], THREE.ShaderChunk["morphnormal_vertex"], THREE.ShaderChunk["skinbase_vertex"], THREE.ShaderChunk["skinnormal_vertex"], THREE.ShaderChunk["defaultnormal_vertex"], THREE.ShaderChunk["morphtarget_vertex"], THREE.ShaderChunk["skinning_vertex"], "vec4 mvPosition;", "#ifdef USE_SKINNING", "mvPosition = modelViewMatrix * skinned;", "#endif", "#if !defined( USE_SKINNING ) && defined( USE_MORPHTARGETS )", "mvPosition = modelViewMatrix * vec4( morphed, 1.0 );", "#endif", "#if !defined( USE_SKINNING ) && ! defined( USE_MORPHTARGETS )", "float baseY = position.y;", "float percentX = position.x / uZoneW;", "float percentOffsetX = uOffsetX / ( uZoneW / 5.0 );", "percentX = percentX + percentOffsetX;", "vec2 posPercent = vec2( percentX * 0.5, position.z / uZoneW * 0.5 );", "if( posPercent.x > 1.0 )", "posPercent.x = posPercent.x - 1.0;", "vWindForce = texture2D( uWindMapForce, posPercent ).x;", "float windMod = ( 1.0 - vWindForce ) * aWindRatio;", "vec2 src = vec2( 0, 1 );", "vec2 dest = vec2( -1, 1 );", "vec2 percent = vec2( aPosition.x / uZoneW * 0.5, aPosition.z / uZoneH );", "float r = texture2D( uWindDisplacementR, percent ).r;", "if ( r >= 0.405 && r <= 0.505 ) r = 0.5;", "r = convertToRange( r, src, dest );", "float g = texture2D( uWindDisplacementG, percent ).g;", "if ( g >= 0.405 && g <= 0.505 ) g = 0.5;", "g = convertToRange( g, src, dest );", "float b = texture2D( uWindDisplacementB, percent ).b;", "if ( b >= 0.405 && b <= 0.505 ) b = 0.5;", "b = convertToRange( b, src, dest );", "vec4 pos = vec4( position, 1.0 );", "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;", "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;", "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;", "vRippleValue = 0.0;", "if ( uRippleStr != 0.0 ) {", "float dx = uRippleStart.x - aPosition.x;", "float dz = uRippleStart.z - aPosition.z;", "float dist = sqrt( dx * dx + dz * dz );", "float dir = atan( dz, dx );", "float diff = dist - uRippleDist;", "if ( diff < 0.0 ) diff = -diff;", "if( diff < 100.0 ) {", "vRippleValue = diff / 100.0;", "float ripplePercent = ( 1.0 - vRippleValue );", "pos.y += uRippleStr * ripplePercent * aWindRatio;", "pos.x += -cos( dir ) * uRippleStr * ripplePercent * aWindRatio;", "pos.z += -sin( dir ) * uRippleStr * ripplePercent * aWindRatio;", "}", "}", "if ( aWindRatio == 0.0 ) {", "vFloorColorPercent = 1.0;", "} else {", "vFloorColorPercent = ( baseY - pos.y ) / ( uGrassBladeHeight / 6.0 );", "if ( vFloorColorPercent < 0.0 ) vFloorColorPercent = 0.0;", "if ( vFloorColorPercent > 1.0 ) vFloorColorPercent = 1.0;", "}", "vPercent = percent;", "vColorRatio = aWindRatio;", "mvPosition = modelViewMatrix * pos;", "#endif", "vColor = aColor;", "vColorWinter = aColorWinter;", "gl_Position = projectionMatrix * mvPosition;", THREE.ShaderChunk["worldpos_vertex"], THREE.ShaderChunk["envmap_vertex"], THREE.ShaderChunk["lights_lambert_vertex"], THREE.ShaderChunk["shadowmap_vertex"], "}"].join("\n");
 
-  WindShader.prototype.fragmentShader = ["uniform float opacity;", "uniform sampler2D uColorChannel;", "uniform vec3 uFloorColorSummer;", "uniform vec3 uFloorColorWinter;", "varying float vColorRatio;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec4 vDebugColor;", "varying vec2 vPercent;", "varying float vFloorColorPercent;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;", "vec3 floorColor = uFloorColorSummer + ( uFloorColorWinter - uFloorColorSummer ) * winterColor.a;", "vec3 newColor = vColor;", "if( vColorRatio == 0.0 )", "newColor = floorColor;", "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;", "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;", "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;", "newColor.r = newColor.r + ( floorColor.r - newColor.r ) * vFloorColorPercent;", "newColor.g = newColor.g + ( floorColor.g - newColor.g ) * vFloorColorPercent;", "newColor.b = newColor.b + ( floorColor.b - newColor.b ) * vFloorColorPercent;", "gl_FragColor = vec4( newColor.rgb, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
+  WindShader.prototype.fragmentShader = ["uniform float opacity;", "uniform sampler2D uColorChannel;", "uniform vec3 uFloorColorSummer;", "uniform vec3 uFloorColorWinter;", "varying float vColorRatio;", "varying vec3 vLightFront;", "varying vec3 vColor;", "varying vec3 vColorWinter;", "varying vec4 vDebugColor;", "varying vec2 vPercent;", "varying float vFloorColorPercent;", "varying float vRippleValue;", "#ifdef DOUBLE_SIDED", "varying vec3 vLightBack;", "#endif", THREE.ShaderChunk["color_pars_fragment"], THREE.ShaderChunk["map_pars_fragment"], THREE.ShaderChunk["lightmap_pars_fragment"], THREE.ShaderChunk["envmap_pars_fragment"], THREE.ShaderChunk["fog_pars_fragment"], THREE.ShaderChunk["shadowmap_pars_fragment"], THREE.ShaderChunk["specularmap_pars_fragment"], "void main() {", "vec4 winterColor = texture2D( uColorChannel, vPercent ).rgba;", "vec3 floorColor = uFloorColorSummer + ( uFloorColorWinter - uFloorColorSummer ) * winterColor.a;", "vec3 newColor = vColor;", "if( vColorRatio == 0.0 )", "newColor = floorColor;", "newColor.r = newColor.r + ( vColorWinter.r - newColor.r ) * winterColor.a * vColorRatio;", "newColor.g = newColor.g + ( vColorWinter.g - newColor.g ) * winterColor.a * vColorRatio;", "newColor.b = newColor.b + ( vColorWinter.b - newColor.b ) * winterColor.a * vColorRatio;", "newColor.r = newColor.r + ( floorColor.r - newColor.r ) * vFloorColorPercent;", "newColor.g = newColor.g + ( floorColor.g - newColor.g ) * vFloorColorPercent;", "newColor.b = newColor.b + ( floorColor.b - newColor.b ) * vFloorColorPercent;", "vec3 rippleColor = vec3( 1.0, 1.0, 1.0 );", "newColor.r = newColor.r + ( rippleColor.r - newColor.r ) * vRippleValue * 0.25;", "newColor.g = newColor.g + ( rippleColor.g - newColor.g ) * vRippleValue * 0.25;", "newColor.b = newColor.b + ( rippleColor.b - newColor.b ) * vRippleValue * 0.25;", "gl_FragColor = vec4( newColor.rgb, opacity );", THREE.ShaderChunk["map_fragment"], THREE.ShaderChunk["alphatest_fragment"], THREE.ShaderChunk["specularmap_fragment"], THREE.ShaderChunk["lightmap_fragment"], THREE.ShaderChunk["color_fragment"], THREE.ShaderChunk["envmap_fragment"], THREE.ShaderChunk["shadowmap_fragment"], THREE.ShaderChunk["linear_to_gamma_fragment"], THREE.ShaderChunk["fog_fragment"], "}"].join("\n");
 
   return WindShader;
 
@@ -622,6 +622,7 @@ Grass = (function(_super) {
     this.h = h;
     this._getProjectedMouse = __bind(this._getProjectedMouse, this);
     this._generateRipple = __bind(this._generateRipple, this);
+    this.onSummer = __bind(this.onSummer, this);
     this.onWinter = __bind(this.onWinter, this);
     this.onGapWinter = __bind(this.onGapWinter, this);
     this._texture = document.getElementById("texture-noise");
@@ -648,8 +649,11 @@ Grass = (function(_super) {
   };
 
   Grass.prototype.onWinter = function() {
-    this._generateRipple(true);
-    return console.log("YEEES");
+    return this._generateRipple(true);
+  };
+
+  Grass.prototype.onSummer = function() {
+    return this._generateRipple(true);
   };
 
   Grass.prototype._generateRipple = function(isBig, value) {
@@ -659,9 +663,9 @@ Grass = (function(_super) {
     pos.z = this.h + pos.z;
     this._rippleStart = pos;
     if (isBig) {
-      this._rippleStr = 80;
+      this._rippleStr = 120;
     } else {
-      this._rippleStr = 15 * value;
+      this._rippleStr = 30 * value;
     }
     this._rippleDist = 0;
     this._rippleSpeed = 0;
@@ -1094,11 +1098,13 @@ SoundsSingleton = (function() {
 
     SoundsInstance.prototype._soundWinter = null;
 
+    SoundsInstance.prototype._soundWind = null;
+
     SoundsInstance.prototype._onAllSoundsLoaded = null;
 
     SoundsInstance.prototype._loadedCount = 0;
 
-    SoundsInstance.prototype._soundsCount = 2;
+    SoundsInstance.prototype._soundsCount = 3;
 
     function SoundsInstance() {}
 
@@ -1114,8 +1120,14 @@ SoundsSingleton = (function() {
         onload: onFirstSoundLoaded,
         loop: true
       });
-      return this._soundWinter = new Howl({
+      this._soundWinter = new Howl({
         urls: ["sounds/Akashic_Records_-_Bells_On_Xmas_Day__symphonic_orchestra_.mp3"],
+        onload: _onAllSoundsLoaded,
+        volume: 0.0,
+        loop: true
+      });
+      return this._soundWind = new Howl({
+        urls: ["sounds/137021__jeffreys2__outside-wind.mp3"],
         onload: _onAllSoundsLoaded,
         volume: 0.0,
         loop: true
@@ -1131,6 +1143,11 @@ SoundsSingleton = (function() {
 
     SoundsInstance.prototype.start = function() {
       return this._soundNormal.play();
+    };
+
+    SoundsInstance.prototype.startWind = function() {
+      this._soundWind.volume = 1.0;
+      return this._soundWind.play;
     };
 
     SoundsInstance.prototype.updateWinter = function() {
@@ -1170,7 +1187,8 @@ World = (function(_super) {
 
   World.prototype._init = function() {
     this._land = new Land();
-    return this.add(this._land);
+    this.add(this._land);
+    return sounds.startWind();
   };
 
   return World;
@@ -1200,6 +1218,7 @@ ColorChannel = (function() {
   ColorChannel.canvas = null;
 
   function ColorChannel(idCanvas, idText, canRotate) {
+    this.onSummer = __bind(this.onSummer, this);
     this.onWinter = __bind(this.onWinter, this);
     this.canvas = document.getElementById(idCanvas);
     ColorChannel.canvas = this.canvas;
@@ -1222,7 +1241,17 @@ ColorChannel = (function() {
       dot = _ref[_i];
       dot.winterise();
     }
-    return winterManager.setPercent(1);
+    return winterManager.gotoPercent(1);
+  };
+
+  ColorChannel.prototype.onSummer = function() {
+    var dot, _i, _len, _ref;
+    _ref = this._dots;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      dot = _ref[_i];
+      dot.summerise();
+    }
+    return winterManager.gotoPercent(0);
   };
 
   ColorChannel.prototype._createDots = function() {
@@ -1305,6 +1334,10 @@ ColorDot = (function() {
   ColorDot.prototype.winterise = function() {
     clearTimeout(this._idTimeout);
     return this.activated = true;
+  };
+
+  ColorDot.prototype.summerise = function() {
+    return this.activated = false;
   };
 
   ColorDot.prototype.update = function() {
@@ -1954,7 +1987,8 @@ UpdateManagerSingleton = (function() {
 
 updateManager = UpdateManagerSingleton.get();
 
-var WinterManagerSingleton, winterManager;
+var WinterManagerSingleton, winterManager,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 WinterManagerSingleton = (function() {
   var WinterManagerInstance;
@@ -1975,6 +2009,8 @@ WinterManagerSingleton = (function() {
     WinterManagerInstance.prototype._toPercent = 0;
 
     function WinterManagerInstance() {
+      this._notifySummer = __bind(this._notifySummer, this);
+      this._notifyWinter = __bind(this._notifyWinter, this);
       this._listeners = [];
       this._listenersGap = [];
       this._listenersWinter = [];
@@ -2009,9 +2045,9 @@ WinterManagerSingleton = (function() {
         this._notifyGap(.3);
       } else if (this.percent < .4 && percent >= .4) {
         this._notifyGap(.6);
-      } else if (this.percent < .55 && percent >= .55) {
+      } else if (this.percent < .5 && percent >= .5) {
         this._notifyGap(1);
-      } else if (this.percent < .65 && percent >= .65) {
+      } else if (this.percent < .61 && percent >= .61) {
         this._notifyWinter();
       }
       this.percent = percent;
@@ -2036,18 +2072,27 @@ WinterManagerSingleton = (function() {
     };
 
     WinterManagerInstance.prototype._notifyWinter = function() {
-      var listener, _i, _len, _ref, _results;
+      var listener, _i, _len, _ref;
       if (this._isWinter) {
         return;
       }
       this._isWinter = true;
       _ref = this._listenersWinter;
-      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         listener = _ref[_i];
-        _results.push(listener.onWinter());
+        listener.onWinter();
       }
-      return _results;
+      setTimeout(this._notifySummer, 22000);
+    };
+
+    WinterManagerInstance.prototype._notifySummer = function() {
+      var listener, _i, _len, _ref;
+      console.log("sunner");
+      _ref = this._listenersWinter;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        listener.onSummer();
+      }
     };
 
     WinterManagerInstance.prototype.gotoPercent = function(value) {
@@ -2073,7 +2118,7 @@ WinterManagerSingleton = (function() {
 
   return WinterManagerSingleton;
 
-})();
+}).call(this);
 
 winterManager = WinterManagerSingleton.get();
 
@@ -2192,13 +2237,17 @@ Main = (function() {
     world = new World();
     engine.scene.add(world);
     sounds.init();
-    updateManager.enableDebugMode();
     updateManager.start();
     winterManager.registerWinter(this);
   }
 
   Main.prototype.onWinter = function() {
     return $("#title_end").addClass("visible");
+  };
+
+  Main.prototype.onSummer = function() {
+    $("#title_end").removeClass("visible");
+    return $("#title_end").addClass("invisible");
   };
 
   return Main;
@@ -2208,8 +2257,7 @@ Main = (function() {
 loadingScreen = new LoadingScreen();
 
 $(window).on("load", function() {
-  $("#loading").remove();
-  return new Main(true);
+  return loadingScreen.readyToLaunch();
 });
 
 $(window).on("resize", function() {

@@ -38,9 +38,9 @@ class WinterManagerSingleton
                 @_notifyGap .3
             else if @percent < .4 && percent >= .4
                 @_notifyGap .6
-            else if @percent < .55 && percent >= .55
+            else if @percent < .5 && percent >= .5
                 @_notifyGap 1
-            else if @percent < .65 && percent >= .65
+            else if @percent < .61 && percent >= .61
                 @_notifyWinter()
 
             @percent = percent
@@ -51,11 +51,20 @@ class WinterManagerSingleton
             for listener in @_listenersGap
                 listener.onGapWinter.call @, value
 
-        _notifyWinter: ->
+        _notifyWinter: =>
             return if @_isWinter
             @_isWinter = true
             for listener in @_listenersWinter
                 listener.onWinter()
+
+            setTimeout @_notifySummer, 22000
+            return
+
+        _notifySummer: =>
+            console.log "sunner"
+            for listener in @_listenersWinter
+                listener.onSummer()
+            return
 
         gotoPercent: ( value ) ->
             @_toPercent = value

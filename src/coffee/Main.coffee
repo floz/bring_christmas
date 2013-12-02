@@ -95,19 +95,23 @@ class Main
 
         sounds.init()
 
-        updateManager.enableDebugMode()
+        # updateManager.enableDebugMode()
         updateManager.start()
 
         winterManager.registerWinter @
 
     onWinter: ->
         $( "#title_end" ).addClass "visible"
+
+    onSummer: ->
+        $( "#title_end" ).removeClass "visible"
+        $( "#title_end" ).addClass "invisible"
         
 loadingScreen = new LoadingScreen()
 $( window ).on "load", ->
-    # loadingScreen.readyToLaunch()
-    $( "#loading" ).remove()
-    new Main( true )
+    loadingScreen.readyToLaunch()
+    # $( "#loading" ).remove()
+    # new Main( true )
 
 $( window ).on "resize", ->
     loadingScreen.resize()
