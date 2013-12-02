@@ -50,12 +50,16 @@ class WindShader
                 "uWindMin": { type: "v2", value: null }
                 "uWindSize": { type: "v2", value: null }
                 "uWindDirection": { type: "v3", value: null }
-                "uMousePos": { type: "v3", value: null }
+                # "uMousePos": { type: "v3", value: null }
                 "uWindDisplacementR": { type: "t", value: null }
                 "uWindDisplacementG": { type: "t", value: null }
                 "uWindDisplacementB": { type: "t", value: null }
                 "uColorChannel": { type: "t", value: null }
                 "uGrassBladeHeight": { type: "f", value: null }
+
+                "uRippleStart": {type: "v3", value: null }
+                "uRippleDist": {type: "f", value: null }
+                "uRippleStr": {type: "f", value: null }
             }
 
         ] )
@@ -75,7 +79,7 @@ class WindShader
             "uniform float uZoneW;"
             "uniform float uZoneH;"
             "uniform float uFloorW;"
-            "uniform vec3 uMousePos;"
+            # "uniform vec3 uMousePos;"
             "uniform sampler2D uWindMapForce;"
             "uniform float uWindScale;"
             "uniform vec2 uWindMin;"
@@ -85,6 +89,9 @@ class WindShader
             "uniform sampler2D uWindDisplacementG;"
             "uniform sampler2D uWindDisplacementB;"
             "uniform float uGrassBladeHeight;"
+            "uniform vec3 uRippleStart;"
+            "uniform float uRippleDist;"
+            "uniform float uRippleStr;"
 
             "varying vec3 vLightFront;"
             "varying float vWindForce;"
@@ -180,6 +187,29 @@ class WindShader
                     "pos.x += windMod * uWindDirection.x + r * 30.0 * aWindRatio;"
                     "pos.y += windMod * uWindDirection.y + g * 10.0 * aWindRatio;"
                     "pos.z += windMod * uWindDirection.z + b * 30.0 * aWindRatio;"
+
+
+                    ##
+                    # RIPPLE
+                    ##
+
+                    "if ( uRippleStr != 0.0 ) {"
+                        "float dx = uRippleStart.x - aPosition.x;"
+                        "float dz = uRippleStart.z - aPosition.z;"
+                        "float dist = sqrt( dx * dx + dz * dz );"
+                        "float dir = atan( dz, dx );"
+
+                        "float diff = dist - uRippleDist;"
+                        "if ( diff < 0.0 ) diff = -diff;"
+                        "if( diff < 50.0 ) {"
+                            "pos.y += uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
+                            "pos.x += -cos( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
+                            "pos.z += -sin( dir ) * uRippleStr * ( 1.0 - diff / 50.0 ) * aWindRatio;"
+                        "}"
+                    "}"
+
+                    ##
+
 
                     "if ( aWindRatio == 0.0 ) {"
                         "vFloorColorPercent = 1.0;"

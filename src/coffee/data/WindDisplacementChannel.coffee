@@ -17,7 +17,7 @@ class WindDisplacementChannel
         @_ctx = @canvas.getContext "2d"
         @_ctx.fillStyle = "rgba( 128, 128, 128, 1 )"
         # @canvas.globalCompositeOperation = "lighter"
-
+        
         @_textDisplacement = document.getElementById idText
         @_textDisplacementW = @_textDisplacement.width
         @_textDisplacementH = @_textDisplacement.height

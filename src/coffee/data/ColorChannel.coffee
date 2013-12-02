@@ -26,6 +26,14 @@ class ColorChannel
 
         @_createDots()
 
+        winterManager.registerWinter @
+
+    onWinter: =>
+        for dot in @_dots
+            dot.winterise()
+
+        winterManager.setPercent 1
+
     _createDots: ->
         @_dots = []
 
@@ -79,12 +87,18 @@ class ColorDot
 
     activated: false
 
+    _idTimeout: -1
+
     constructor: ( @x, @y ) ->
 
     activate: ->
         return if @activated
         @activated = true
-        setTimeout @deactivate, 20000
+        @_idTimeout = setTimeout @deactivate, 20000
+
+    winterise: ->
+        clearTimeout @_idTimeout
+        @activated = true
 
     update: ->
         if @activated

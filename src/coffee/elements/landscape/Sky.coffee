@@ -30,7 +30,7 @@ class Sky extends THREE.Object3D
         winterManager.register @
 
     updateWinter: ->
-        @_materialLight.opacity = 1 - winterManager.percent * 2
+        @_materialLight.opacity = 1 - winterManager.percent
         @_materialLight.needUpdate = true
 
 

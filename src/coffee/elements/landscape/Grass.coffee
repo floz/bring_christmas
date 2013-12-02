@@ -31,6 +31,13 @@ class Grass extends THREE.Object3D
 
     _lastProjectedMouse: { x: 0.0, y: 0.0, z: 0.0 }
 
+    _rippleStart: new THREE.Vector3 0, 0, 0
+    _rippleDist: 0
+    _rippleStr: 0
+    _rippleSpeed: 0
+    _rippleSpeedMax: 50
+    _updateRipple: false
+
 
     _sign: 1
     _add: 0
@@ -54,6 +61,28 @@ class Grass extends THREE.Object3D
 
         @_generateBlades()
         @_createGrass()
+
+        winterManager.registerGap @
+        winterManager.registerWinter @
+
+    onGapWinter: ( value ) =>
+        @_generateRipple false, value
+
+    onWinter: =>
+        @_generateRipple true
+
+    _generateRipple: ( isBig, value ) =>
+        pos = @_getProjectedMouse()
+        pos.x += @w >> 1
+        pos.z = @h + pos.z
+
+        @_rippleStart = pos
+        if isBig then @_rippleStr = 80 else @_rippleStr = 15 * value
+        @_rippleDist = 0
+        @_rippleSpeed = 0
+        @_updateRipple = true
+
+        @_uniforms.uRippleStart.value = pos
 
     _generateBlades: ->
         @_colors = []
@@ -114,7 +143,6 @@ class Grass extends THREE.Object3D
             px = xMin
             pz += vz
 
-        console.log @_blades.vertices.length
         @_blades.computeFaceNormals()
 
     _createGrass: ->
@@ -157,7 +185,7 @@ class Grass extends THREE.Object3D
         @_uniforms.uZoneW.value = @w >> 1
         @_uniforms.uZoneH.value = @w >> 1
         @_uniforms.uFloorW.value = @w
-        @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
+        # @_uniforms.uMousePos.value = new THREE.Vector2 stage.mouse.x, stage.mouse.y
         @_uniforms.uFloorColorSummer.value = Colors.floorSummer
         @_uniforms.uFloorColorWinter.value = Colors.floorWinter
         @_uniforms.uGrassBladeHeight.value = GrassBlade.HEIGHT
@@ -167,6 +195,10 @@ class Grass extends THREE.Object3D
         @_uniforms.uWindMin.value = new THREE.Vector2 0, 0
         @_uniforms.uWindSize.value = new THREE.Vector2 60, 60
         @_uniforms.uWindDirection.value = new THREE.Vector3 13, 5, 13
+
+        @_uniforms.uRippleStart.value = @_rippleStart
+        @_uniforms.uRippleDist.value = @_rippleDist
+        @_uniforms.uRippleStr.value = @_rippleStr
 
         material = new THREE.ShaderMaterial params
         material.side = THREE.DoubleSide
@@ -182,6 +214,26 @@ class Grass extends THREE.Object3D
 
         @_uniforms.uOffsetX.value = @_add
 
+        pos = @_getProjectedMouse()
+
+        # @_uniforms.uMousePos.value.x = pos.x
+        # @_uniforms.uMousePos.value.y = pos.y
+        # @_uniforms.uMousePos.value.z = pos.z
+
+        @_displacementData.update pos.x, pos.z
+        @_windDisplacementRTexture.needsUpdate = true
+        @_windDisplacementGTexture.needsUpdate = true
+        @_windDisplacementBTexture.needsUpdate = true
+        @_colorChannelTexture.needsUpdate = true
+
+        if @_updateRipple
+            @_rippleSpeed += ( @_rippleSpeedMax - @_rippleSpeed ) * .05
+            @_rippleDist += @_rippleSpeed
+            @_rippleStr *= .95
+            @_uniforms.uRippleDist.value = @_rippleDist
+            @_uniforms.uRippleStr.value = @_rippleStr
+
+    _getProjectedMouse: =>
         @_vProjector.x = ( stage.mouse.x / stage.size.w ) * 2 - 1
         @_vProjector.y = -( stage.mouse.y / stage.size.h ) * 2 + 1
         @_vProjector.z = 1
@@ -194,12 +246,4 @@ class Grass extends THREE.Object3D
         pos.x = @_vProjector.x + ( camPos.x - @_vProjector.x ) * m
         pos.z = @_vProjector.z + ( camPos.z - @_vProjector.z ) * m
 
-        @_uniforms.uMousePos.value.x = pos.x
-        @_uniforms.uMousePos.value.y = pos.y
-        @_uniforms.uMousePos.value.z = pos.z
-
-        @_displacementData.update pos.x, pos.z
-        @_windDisplacementRTexture.needsUpdate = true
-        @_windDisplacementGTexture.needsUpdate = true
-        @_windDisplacementBTexture.needsUpdate = true
-        @_colorChannelTexture.needsUpdate = true
+        pos

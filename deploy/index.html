@@ -7,11 +7,25 @@
     <title>Bring Christmas</title>
 
     <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/tradegothic.css">
     <link rel="stylesheet" href="css/main.css">
 
   </head>
   <body>
     <div id="scene"></div>
+
+    <div id="loading">
+      <img id="background_loading" src="img/background_home_blur.jpg" width="2560" height="1412" />
+      <div id="content">
+        <img id="logo" src="img/logo.png" width="800" height="436" />
+        <div id="loading-text">LOADING...</div>
+        <div id="loading-details">...SOME CANDIES FOR YOUR EARS</div>
+        <div id="bts">
+          <a href="#" id="bt_low-def" class="bt">LOW DEF</a>
+          <a href="#" id="bt_high-def" class="bt">HIGH DEF</a>
+        </div>
+      </div>
+    </div>
 
     <div id="textures">
       <img id="texture-noise" class="texture" src="img/map_noise_pow2_blurred_mul2.png" width="512" height="128"/>
@@ -37,6 +51,8 @@
       <img id="color-winter" src="img/colors_winter.png" width="256" height="128" />
     </div>
 
+    <img id="title_end" src="img/title_end.png" width="531" height="63" />
+
     <script type="text/javascript" src="js/vendor/RequestAnimationFrame.js"></script>
     <script type="text/javascript" src="js/vendor/threejs/three.min.js"></script>
     <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/VignetteShader.js"></script>
@@ -50,6 +66,10 @@
     <script type="text/javascript" src="js/vendor/Stats.js"></script>
     <script type="text/javascript" src="js/vendor/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="js/vendor/howler.min.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoader.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoaderImage.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoaderSound.js"></script>
+    <script type="text/javascript" src="js/vendor/Utils.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
 
   </body>

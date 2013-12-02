@@ -13,7 +13,7 @@ class EngineSingleton
         _composer: null
         _depthTarget: null
 
-        init: ( container ) ->
+        init: ( container, isHighDef ) ->
             @renderer = new THREE.WebGLRenderer 
                 alpha: false
                 antialias: false
@@ -35,7 +35,7 @@ class EngineSingleton
 
             @scene = new THREE.Scene()
 
-            @_initPostProcessing()
+            @_initPostProcessing() if isHighDef
 
             updateManager.register @
 
@@ -64,8 +64,10 @@ class EngineSingleton
             @_composer.addPass effectCopy
 
         update: ->
-            # @renderer.render @scene, @camera
-            @_composer.render()
+            if @_composer
+                @_composer.render()
+            else
+                @renderer.render @scene, @camera
 
     instance = null
     @get: -> 

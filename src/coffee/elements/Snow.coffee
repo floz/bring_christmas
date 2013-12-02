@@ -27,7 +27,7 @@ class Snow extends THREE.Object3D
 		@_idx = []
 
 		for vertice, i in geometry.vertices
-			@_sizes[ i ] = 50 + Math.random() * 80
+			@_sizes[ i ] = 30 + Math.random() * 50
 			@_colors[ i ] = new THREE.Color 0xffffff
 			@_colors[ i ].setHSL 1.0, 0.0, 0.05 + Math.random() * 0.9
 			@_times[ i ] = Math.random()

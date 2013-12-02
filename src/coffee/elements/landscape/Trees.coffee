@@ -27,6 +27,6 @@ class Trees extends THREE.Object3D
         winterManager.register @
 
     updateWinter: ->
-        @_materialSnow.opacity = winterManager.percent * 2
+        @_materialSnow.opacity = winterManager.percent
         @_materialSnow.needUpdate = true
 
