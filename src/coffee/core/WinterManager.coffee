@@ -30,18 +30,18 @@ class WinterManagerSingleton
             percent -= .1
             percent = 0 if percent < 0
             percent *= 2
+            percent = 1 if percent > 1
             return if percent == @percent
+            console.log percent
 
             if @percent < .1 && percent >= .1
                 @_notifyGap .15
             if @percent < .2 && percent >= .2
                 @_notifyGap .3
             else if @percent < .4 && percent >= .4
-                @_notifyGap .6
-            else if @percent < .5 && percent >= .5
                 @_notifyGap 1
-            else if @percent < .61 && percent >= .61
-                @_notifyWinter()
+            else if @percent < .48 && percent >= .5
+                @_notifyWinter()                
 
             @percent = percent
             for listener in @_listeners
@@ -61,14 +61,18 @@ class WinterManagerSingleton
             return
 
         _notifySummer: =>
-            console.log "sunner"
             for listener in @_listenersWinter
                 listener.onSummer()
+            @_isWinter = false
             return
 
         gotoPercent: ( value ) ->
             @_toPercent = value
             updateManager.register @
+
+        reset: ->
+            @_toPercent = 0
+            updateManager.unregister @
 
         update: ->
             p = @percent + ( @_toPercent - @percent ) * .05

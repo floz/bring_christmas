@@ -8,7 +8,7 @@ class SoundsSingleton
 
         _onAllSoundsLoaded: null
         _loadedCount: 0
-        _soundsCount: 3
+        _soundsCount: 2
 
         constructor: ->
             
@@ -18,7 +18,7 @@ class SoundsSingleton
             @_soundWinter.volume 0
             @_soundWinter.play()
 
-        load: ( onFirstSoundLoaded, _onAllSoundsLoaded ) ->
+        load: ( onFirstSoundLoaded, @_onAllSoundsLoaded ) ->
             @_soundNormal = new Howl
                 urls: [ "sounds/Jupiter_Makes_Me_Scream_-_05_-_This_Girl.mp3" ]
                 onload: onFirstSoundLoaded
@@ -26,17 +26,17 @@ class SoundsSingleton
 
             @_soundWinter = new Howl
                 urls: [ "sounds/Akashic_Records_-_Bells_On_Xmas_Day__symphonic_orchestra_.mp3" ]
-                onload: _onAllSoundsLoaded
+                onload: @_onSoundLoaded
                 volume: 0.0
                 loop: true
 
             @_soundWind = new Howl
                 urls: [ "sounds/137021__jeffreys2__outside-wind.mp3" ]
-                onload: _onAllSoundsLoaded
+                onload: @_onSoundLoaded
                 volume: 0.0
                 loop: true
         
-        _onSoundLoaded: ->
+        _onSoundLoaded: =>
             @_loadedCount++
             @_onAllSoundsLoaded() if @_loadedCount == @_soundsCount            
 

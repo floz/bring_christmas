@@ -1086,7 +1086,8 @@ Snow = (function(_super) {
 
 })(THREE.Object3D);
 
-var SoundsSingleton, sounds;
+var SoundsSingleton, sounds,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 SoundsSingleton = (function() {
   var SoundsInstance;
@@ -1104,9 +1105,11 @@ SoundsSingleton = (function() {
 
     SoundsInstance.prototype._loadedCount = 0;
 
-    SoundsInstance.prototype._soundsCount = 3;
+    SoundsInstance.prototype._soundsCount = 2;
 
-    function SoundsInstance() {}
+    function SoundsInstance() {
+      this._onSoundLoaded = __bind(this._onSoundLoaded, this);
+    }
 
     SoundsInstance.prototype.init = function() {
       winterManager.register(this);
@@ -1115,6 +1118,7 @@ SoundsSingleton = (function() {
     };
 
     SoundsInstance.prototype.load = function(onFirstSoundLoaded, _onAllSoundsLoaded) {
+      this._onAllSoundsLoaded = _onAllSoundsLoaded;
       this._soundNormal = new Howl({
         urls: ["sounds/Jupiter_Makes_Me_Scream_-_05_-_This_Girl.mp3"],
         onload: onFirstSoundLoaded,
@@ -1122,13 +1126,13 @@ SoundsSingleton = (function() {
       });
       this._soundWinter = new Howl({
         urls: ["sounds/Akashic_Records_-_Bells_On_Xmas_Day__symphonic_orchestra_.mp3"],
-        onload: _onAllSoundsLoaded,
+        onload: this._onSoundLoaded,
         volume: 0.0,
         loop: true
       });
       return this._soundWind = new Howl({
         urls: ["sounds/137021__jeffreys2__outside-wind.mp3"],
-        onload: _onAllSoundsLoaded,
+        onload: this._onSoundLoaded,
         volume: 0.0,
         loop: true
       });
@@ -1167,7 +1171,7 @@ SoundsSingleton = (function() {
 
   return SoundsSingleton;
 
-})();
+}).call(this);
 
 sounds = SoundsSingleton.get();
 
@@ -1251,7 +1255,7 @@ ColorChannel = (function() {
       dot = _ref[_i];
       dot.summerise();
     }
-    return winterManager.gotoPercent(0);
+    return winterManager.reset();
   };
 
   ColorChannel.prototype._createDots = function() {
@@ -1804,6 +1808,7 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype.update = function() {
       if (this._composer) {
+        console.log("composer");
         return this._composer.render();
       } else {
         return this.renderer.render(this.scene, this.camera);
@@ -2035,19 +2040,21 @@ WinterManagerSingleton = (function() {
         percent = 0;
       }
       percent *= 2;
+      if (percent > 1) {
+        percent = 1;
+      }
       if (percent === this.percent) {
         return;
       }
+      console.log(percent);
       if (this.percent < .1 && percent >= .1) {
         this._notifyGap(.15);
       }
       if (this.percent < .2 && percent >= .2) {
         this._notifyGap(.3);
       } else if (this.percent < .4 && percent >= .4) {
-        this._notifyGap(.6);
-      } else if (this.percent < .5 && percent >= .5) {
         this._notifyGap(1);
-      } else if (this.percent < .61 && percent >= .61) {
+      } else if (this.percent < .48 && percent >= .5) {
         this._notifyWinter();
       }
       this.percent = percent;
@@ -2087,17 +2094,22 @@ WinterManagerSingleton = (function() {
 
     WinterManagerInstance.prototype._notifySummer = function() {
       var listener, _i, _len, _ref;
-      console.log("sunner");
       _ref = this._listenersWinter;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         listener = _ref[_i];
         listener.onSummer();
       }
+      this._isWinter = false;
     };
 
     WinterManagerInstance.prototype.gotoPercent = function(value) {
       this._toPercent = value;
       return updateManager.register(this);
+    };
+
+    WinterManagerInstance.prototype.reset = function() {
+      this._toPercent = 0;
+      return updateManager.unregister(this);
     };
 
     WinterManagerInstance.prototype.update = function() {
@@ -2198,7 +2210,7 @@ LoadingScreen = (function() {
     $("#loading-details").addClass("invisible");
     $("#bts").addClass("invisible");
     $("#background_loading").addClass("invisible");
-    return setTimeout(10000, this._removeLoading);
+    return setTimeout(this._removeLoading, 10000);
   };
 
   LoadingScreen.prototype._removeLoading = function() {
@@ -2206,12 +2218,14 @@ LoadingScreen = (function() {
   };
 
   LoadingScreen.prototype._launchLowDef = function() {
-    new Main(false, this._onWorldGenerated);
+    console.log("low def");
+    new Main(false);
     return this._clear();
   };
 
   LoadingScreen.prototype._launchHighDef = function() {
-    new Main(true, this._onWorldGenerated);
+    console.log("high def");
+    new Main(true);
     return this._clear();
   };
 
@@ -2242,6 +2256,7 @@ Main = (function() {
   }
 
   Main.prototype.onWinter = function() {
+    $("#title_end").removeClass("invisible");
     return $("#title_end").addClass("visible");
   };
 

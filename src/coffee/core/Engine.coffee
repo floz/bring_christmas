@@ -65,6 +65,7 @@ class EngineSingleton
 
         update: ->
             if @_composer
+                console.log "composer"
                 @_composer.render()
             else
                 @renderer.render @scene, @camera

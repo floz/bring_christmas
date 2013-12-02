@@ -38,7 +38,8 @@ class ColorChannel
         for dot in @_dots
             dot.summerise()
 
-        winterManager.gotoPercent 0
+        # winterManager.gotoPercent 0
+        winterManager.reset()
 
     _createDots: ->
         @_dots = []

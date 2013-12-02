@@ -60,17 +60,19 @@ class LoadingScreen
         $( "#bts" ).addClass "invisible"
         $( "#background_loading" ).addClass "invisible"
 
-        setTimeout 10000, @_removeLoading
+        setTimeout @_removeLoading, 10000
 
     _removeLoading: =>
         $( "#loading" ).remove()
 
     _launchLowDef: =>
-        new Main( false, @_onWorldGenerated )
+        console.log "low def"
+        new Main( false )
         @_clear()
 
     _launchHighDef: =>
-        new Main( true, @_onWorldGenerated )
+        console.log "high def"
+        new Main( true )
         @_clear()
 
     resize: ->
@@ -101,6 +103,7 @@ class Main
         winterManager.registerWinter @
 
     onWinter: ->
+        $( "#title_end" ).removeClass "invisible"
         $( "#title_end" ).addClass "visible"
 
     onSummer: ->

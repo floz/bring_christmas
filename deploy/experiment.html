@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+
+    <title>Bring Christmas</title>
+
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/tradegothic.css">
+    <link rel="stylesheet" href="css/main.css">
+
+  </head>
+  <body>
+    <div id="scene"></div>
+
+    <div id="loading">
+      <img id="background_loading" src="img/background_home_blur.jpg" width="2560" height="1412" />
+      <div id="content">
+        <img id="logo" src="img/logo.png" width="800" height="436" />
+        <div id="loading-text">LOADING...</div>
+        <div id="loading-details">...SOME CANDIES FOR YOUR EARS</div>
+        <div id="bts">
+          <a href="#" id="bt_low-def" class="bt">LOW DEF</a>
+          <a href="#" id="bt_high-def" class="bt">HIGH DEF</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="textures">
+      <img id="texture-noise" class="texture" src="img/map_noise_pow2_blurred_mul2.png" width="512" height="128"/>
+      <img id="texture-height" class="texture" src="img/map_height_mul2.png" width="256" height="128"/>
+      <img id="texture-displacement-r" class="texture" src="img/normal_map_r4_circle.png" width="64" height="64" />
+      <img id="texture-displacement-g" class="texture" src="img/normal_map_g_circle.png" width
+      ="64" height="64" />
+      <img id="texture-displacement-b" class="texture" src="img/normal_map_b_circle.png" width
+      ="64" height="64" />
+      <img id="texture-color" class="texture" src="img/color_winter.png" width
+      ="32" height="32" />
+    </div>
+
+    <div id="maps">
+      <canvas id="map-displacement-r" width="512" height="256"></canvas>
+      <canvas id="map-displacement-g" width="512" height="256"></canvas>
+      <canvas id="map-displacement-b" width="512" height="256"></canvas>
+      <canvas id="map-color" width="512" height="256"></canvas>
+    </div>
+
+    <div id="colors">
+      <img id="color-summer" src="img/colors_summer.png" width="256" height="128" />
+      <img id="color-winter" src="img/colors_winter.png" width="256" height="128" />
+    </div>
+
+    <img id="title_end" src="img/title_end.png" width="531" height="63" />
+
+    <script type="text/javascript" src="js/vendor/RequestAnimationFrame.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/three.min.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/VignetteShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/CopyShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/shaders/ConvolutionShader.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/EffectComposer.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/RenderPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/ShaderPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/BloomPass.js"></script>
+    <script type="text/javascript" src="js/vendor/threejs/plugins/postprocessing/MaskPass.js"></script>
+    <script type="text/javascript" src="js/vendor/Stats.js"></script>
+    <script type="text/javascript" src="js/vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="js/vendor/howler.min.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoader.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoaderImage.js"></script>
+    <script type="text/javascript" src="js/vendor/pxloader/PxLoaderSound.js"></script>
+    <script type="text/javascript" src="js/vendor/Utils.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+
+  </body>
+</html>
