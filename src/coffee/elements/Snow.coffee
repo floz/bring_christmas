@@ -78,5 +78,5 @@ class Snow extends THREE.Object3D
 		@_uniforms.globalTime.value += delta * 0.00015
 
 	updateWinter: -> 
-		@_uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent
+		@_uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent * 2
 

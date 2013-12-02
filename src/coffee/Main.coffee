@@ -10,6 +10,8 @@ class Main
         world = new World()
         engine.scene.add world
 
+        sounds.init()
+
         updateManager.enableDebugMode()
         updateManager.start()
         

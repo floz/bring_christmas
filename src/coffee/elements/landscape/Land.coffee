@@ -26,8 +26,7 @@ class Land extends THREE.Object3D
         @.add sky
 
         treesRight = new Trees()
-        treesRight.position.x = Size.w * .5 - 150 >> 0
-        treesRight.position.y = 150
+        treesRight.position.y = 200
         treesRight.position.z = -Size.h * .5 + 2 >> 0
         @.add treesRight
 

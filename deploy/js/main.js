@@ -638,7 +638,7 @@ Grass = (function(_super) {
     vz = this.h / step;
     for (i = _i = 0; 0 <= step ? _i < step : _i > step; i = 0 <= step ? ++_i : --_i) {
       for (j = _j = 0; 0 <= step ? _j < step : _j > step; j = 0 <= step ? ++_j : --_j) {
-        if (pz > 1150) {
+        if (pz > 1150 || (px < 500 && pz > 600) || (px > 1800 && pz > 800)) {
           px += vx;
           continue;
         }
@@ -673,6 +673,7 @@ Grass = (function(_super) {
       px = xMin;
       pz += vz;
     }
+    console.log(this._blades.vertices.length);
     return this._blades.computeFaceNormals();
   };
 
@@ -826,8 +827,7 @@ Land = (function(_super) {
     sky.position.y = 350;
     this.add(sky);
     treesRight = new Trees();
-    treesRight.position.x = Size.w * .5 - 150 >> 0;
-    treesRight.position.y = 150;
+    treesRight.position.y = 200;
     treesRight.position.z = -Size.h * .5 + 2 >> 0;
     this.add(treesRight);
     this.position.z = -500;
@@ -851,19 +851,40 @@ var Sky,
 Sky = (function(_super) {
   __extends(Sky, _super);
 
+  Sky.prototype._materialBg = null;
+
+  Sky.prototype._materialLight = null;
+
+  Sky.prototype._geometry = null;
+
   function Sky() {
-    var geometry, material, texture;
-    texture = THREE.ImageUtils.loadTexture("img/sky_big.jpg");
-    geometry = new THREE.PlaneGeometry(Size.w * 1.5, 600);
-    material = new THREE.MeshBasicMaterial({
-      map: texture
+    var meshBg, meshLight, textureBg, textureLight;
+    THREE.Object3D.call(this);
+    textureBg = THREE.ImageUtils.loadTexture("img/sky_big.jpg");
+    textureLight = THREE.ImageUtils.loadTexture("img/sky_lights.jpg");
+    this._geometry = new THREE.PlaneGeometry(Size.w * 1.5, 600);
+    this._materialBg = new THREE.MeshBasicMaterial({
+      map: textureBg
     });
-    THREE.Mesh.call(this, geometry, material);
+    this._materialLight = new THREE.MeshBasicMaterial({
+      map: textureLight,
+      transparent: true
+    });
+    meshBg = new THREE.Mesh(this._geometry, this._materialBg);
+    this.add(meshBg);
+    meshLight = new THREE.Mesh(this._geometry, this._materialLight);
+    this.add(meshLight);
+    winterManager.register(this);
   }
+
+  Sky.prototype.updateWinter = function() {
+    this._materialLight.opacity = 1 - winterManager.percent * 2;
+    return this._materialLight.needUpdate = true;
+  };
 
   return Sky;
 
-})(THREE.Mesh);
+})(THREE.Object3D);
 
 var Trees,
   __hasProp = {}.hasOwnProperty,
@@ -872,20 +893,36 @@ var Trees,
 Trees = (function(_super) {
   __extends(Trees, _super);
 
+  Trees.prototype._materialSnow = null;
+
   function Trees() {
-    var geometry, material, texture;
-    texture = THREE.ImageUtils.loadTexture("img/trees.png");
-    material = new THREE.MeshBasicMaterial({
-      map: texture,
+    var geometry, materialBg, textureBg, textureSnow;
+    THREE.Object3D.call(this);
+    textureBg = THREE.ImageUtils.loadTexture("img/trees_big.png");
+    textureSnow = THREE.ImageUtils.loadTexture("img/trees_snow.png");
+    geometry = new THREE.PlaneGeometry(Size.w, 256);
+    materialBg = new THREE.MeshBasicMaterial({
+      map: textureBg,
       transparent: true
     });
-    geometry = new THREE.PlaneGeometry(512, 256);
-    THREE.Mesh.call(this, geometry, material);
+    this._materialSnow = new THREE.MeshBasicMaterial({
+      map: textureSnow,
+      transparent: true
+    });
+    this._materialSnow.opacity = 0;
+    this.add(new THREE.Mesh(geometry, materialBg));
+    this.add(new THREE.Mesh(geometry, this._materialSnow));
+    winterManager.register(this);
   }
+
+  Trees.prototype.updateWinter = function() {
+    this._materialSnow.opacity = winterManager.percent * 2;
+    return this._materialSnow.needUpdate = true;
+  };
 
   return Trees;
 
-})(THREE.Mesh);
+})(THREE.Object3D);
 
 var Snow,
   __hasProp = {}.hasOwnProperty,
@@ -974,12 +1011,65 @@ Snow = (function(_super) {
   };
 
   Snow.prototype.updateWinter = function() {
-    return this._uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent;
+    return this._uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent * 2;
   };
 
   return Snow;
 
 })(THREE.Object3D);
+
+var SoundsSingleton, sounds;
+
+SoundsSingleton = (function() {
+  var SoundsInstance;
+
+  function SoundsSingleton() {}
+
+  SoundsInstance = (function() {
+    SoundsInstance.prototype._soundNormal = null;
+
+    SoundsInstance.prototype._soundWinter = null;
+
+    function SoundsInstance() {
+      this._soundNormal = new Howl({
+        urls: ["sounds/Jupiter_Makes_Me_Scream_-_05_-_This_Girl.mp3"],
+        autoplay: true,
+        loop: true
+      });
+      this._soundWinter = new Howl({
+        urls: ["sounds/Akashic_Records_-_Bells_On_Xmas_Day__symphonic_orchestra_.mp3"],
+        autoplay: false,
+        volume: 0.0,
+        loop: true
+      });
+    }
+
+    SoundsInstance.prototype.init = function() {
+      winterManager.register(this);
+      this._soundWinter.volume(0);
+      return this._soundWinter.play();
+    };
+
+    SoundsInstance.prototype.updateWinter = function() {
+      this._soundWinter.volume(winterManager.percent);
+      return this._soundNormal.volume(1 - winterManager.percent);
+    };
+
+    return SoundsInstance;
+
+  })();
+
+  SoundsSingleton._instance = null;
+
+  SoundsSingleton.get = function() {
+    return this._instance != null ? this._instance : this._instance = new SoundsInstance();
+  };
+
+  return SoundsSingleton;
+
+})();
+
+sounds = SoundsSingleton.get();
 
 var World,
   __hasProp = {}.hasOwnProperty,
@@ -1112,7 +1202,7 @@ ColorDot = (function() {
       return;
     }
     this.activated = true;
-    return setTimeout(this.deactivate, 10000);
+    return setTimeout(this.deactivate, 20000);
   };
 
   ColorDot.prototype.update = function() {
@@ -1151,7 +1241,6 @@ ColorData = (function() {
     canvas = document.createElement("canvas");
     canvas.width = this._w;
     canvas.height = this._h;
-    document.body.appendChild(canvas);
     ctx = canvas.getContext("2d");
     ctx.drawImage(this.img, 0, 0);
     data = ctx.getImageData(0, 0, this._w, this._h).data;
@@ -1537,27 +1626,28 @@ EngineSingleton = (function() {
     EngineInstance.prototype.init = function(container) {
       this.renderer = new THREE.WebGLRenderer({
         alpha: false,
-        antialias: true,
-        precision: "highp",
+        antialias: false,
+        precision: "lowp",
         stencil: false,
         preserveDrawingBuffer: false
       });
-      this.renderer.setClearColor(0x416ca3, 1);
+      this.renderer.sortObjects = false;
+      this.renderer.setClearColor(0x031a3f, 1);
       this.renderer.setSize(stage.size.w, stage.size.h);
       this._container = container;
       this._container.appendChild(this.renderer.domElement);
       this.camera = new THREE.PerspectiveCamera(50, stage.size.w / stage.size.h, 1, 3000);
       this.camera.position.set(0, 250, 250);
-      this.camera.lookAt(new THREE.Vector3(0, 50, -1280 / 2));
+      this.camera.lookAt(new THREE.Vector3(0, 50, -Size.h / 2));
       this.scene = new THREE.Scene();
       this._initPostProcessing();
       return updateManager.register(this);
     };
 
     EngineInstance.prototype._initPostProcessing = function() {
-      var effectCopy, effectVignette, fxaa, renderPass, renderTarget;
+      var effectCopy, effectVignette, renderPass, renderTarget;
       this.renderer.autoClear = false;
-      renderTarget = new THREE.WebGLRenderTarget(stage.size.w * 2, stage.size.h * 2, {
+      renderTarget = new THREE.WebGLRenderTarget(stage.size.w * window.devicePixelRatio, stage.size.h * window.devicePixelRatio, {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
         format: THREE.RGBFormat,
@@ -1567,8 +1657,6 @@ EngineSingleton = (function() {
       renderPass = new THREE.RenderPass(this.scene, this.camera);
       this._composer.addPass(renderPass);
       this._composer.addPass(new THREE.BloomPass(0.5));
-      fxaa = new THREE.ShaderPass(THREE.FXAAShader);
-      fxaa.uniforms.resolution.value = new THREE.Vector2(1 / stage.size.w / 2, 1 / stage.size.h / 2);
       effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
       effectVignette.uniforms.offset.value = 1.0;
       effectVignette.uniforms.darkness.value = 1.05;
@@ -1824,6 +1912,7 @@ Main = (function() {
     Colors.winter = new ColorData(document.getElementById("color-winter"));
     world = new World();
     engine.scene.add(world);
+    sounds.init();
     updateManager.enableDebugMode();
     updateManager.start();
   }

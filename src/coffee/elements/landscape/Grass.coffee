@@ -81,7 +81,7 @@ class Grass extends THREE.Object3D
         vz = @h / step
         for i in [ 0...step ]
             for j in [ 0...step ]
-                if pz > 1150
+                if pz > 1150 || ( px < 500 && pz > 600 ) || ( px > 1800 && pz > 800 )
                     px += vx
                     continue
                 blade = new GrassBlade px, 0, pz
@@ -114,6 +114,7 @@ class Grass extends THREE.Object3D
             px = xMin
             pz += vz
 
+        console.log @_blades.vertices.length
         @_blades.computeFaceNormals()
 
     _createGrass: ->

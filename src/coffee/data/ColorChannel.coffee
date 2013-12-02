@@ -84,7 +84,7 @@ class ColorDot
     activate: ->
         return if @activated
         @activated = true
-        setTimeout @deactivate, 10000
+        setTimeout @deactivate, 20000
 
     update: ->
         if @activated

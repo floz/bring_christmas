@@ -11,7 +11,6 @@ class ColorData
         canvas = document.createElement "canvas"
         canvas.width = @_w
         canvas.height = @_h
-        document.body.appendChild canvas
 
         ctx = canvas.getContext "2d"
         ctx.drawImage @img, 0, 0

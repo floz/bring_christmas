@@ -16,25 +16,21 @@ class EngineSingleton
         init: ( container ) ->
             @renderer = new THREE.WebGLRenderer 
                 alpha: false
-                antialias: true
-                precision: "highp"
+                antialias: false
+                precision: "lowp"
                 stencil: false
                 preserveDrawingBuffer: false
 
-            @renderer.setClearColor 0x416ca3, 1
+            @renderer.sortObjects = false
+            @renderer.setClearColor 0x031a3f, 1
             @renderer.setSize stage.size.w, stage.size.h
-            # @renderer.shadowMapEnabled = false;
-            # @renderer.shadowMapSoft = false;
-            # @renderer.gammaInput = true;
-            # @renderer.gammaOutput = true;
-            # @renderer.setSize stage.size.w >> 1, stage.size.h >> 1
 
             @_container = container
             @_container.appendChild @renderer.domElement
 
             @camera = new THREE.PerspectiveCamera 50, stage.size.w / stage.size.h, 1, 3000
             @camera.position.set 0, 250, 250
-            @camera.lookAt new THREE.Vector3 0, 50, -1280 /2
+            @camera.lookAt new THREE.Vector3 0, 50, -Size.h / 2
             # @camera.position.set 0, 0, 400
 
             @scene = new THREE.Scene()
@@ -46,7 +42,7 @@ class EngineSingleton
         _initPostProcessing: ->
             @renderer.autoClear = false
 
-            renderTarget = new THREE.WebGLRenderTarget stage.size.w * 2, stage.size.h * 2, 
+            renderTarget = new THREE.WebGLRenderTarget stage.size.w * window.devicePixelRatio, stage.size.h * window.devicePixelRatio, 
                 minFilter: THREE.LinearFilter
                 magFilter: THREE.LinearFilter
                 format: THREE.RGBFormat
@@ -57,10 +53,6 @@ class EngineSingleton
             @_composer.addPass renderPass
 
             @_composer.addPass new THREE.BloomPass 0.5
-
-            fxaa = new THREE.ShaderPass THREE.FXAAShader
-            fxaa.uniforms.resolution.value = new THREE.Vector2 1 / stage.size.w / 2, 1 / stage.size.h / 2
-            # @_composer.addPass fxaa
 
             effectVignette = new THREE.ShaderPass THREE.VignetteShader
             effectVignette.uniforms.offset.value = 1.0;
