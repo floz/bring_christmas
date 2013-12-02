@@ -36,11 +36,11 @@ class WinterManagerSingleton
 
             if @percent < .1 && percent >= .1
                 @_notifyGap .15
-            if @percent < .15 && percent >= .15
+            if @percent < .2 && percent >= .2
                 @_notifyGap .3
-            else if @percent < .2 && percent >= .2
+            else if @percent < .3 && percent >= .3
                 @_notifyGap 1
-            else if @percent < .35 && percent >= .35
+            else if @percent < .4 && percent >= .4
                 @_notifyWinter()                
 
             @percent = percent
