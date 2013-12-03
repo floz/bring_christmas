@@ -4,7 +4,7 @@ class Sky extends THREE.Object3D
     _materialLight: null
     _geometry: null
 
-    _toOpacity: 0
+    _toOpacity: 1
     _currentOpacity: 0
 
     constructor: ->
@@ -31,6 +31,7 @@ class Sky extends THREE.Object3D
         # meshLight.position.z = 1
 
         winterManager.register @
+        updateManager.register @
 
     updateWinter: ->
         @_toOpacity = 1 - winterManager.percent
@@ -38,7 +39,8 @@ class Sky extends THREE.Object3D
     update: ->
         @_currentOpacity += ( @_toOpacity - @_currentOpacity ) * .1
         diff = @_currentOpacity - @_materialLight.opacity
-        if diff > .1
+        diff = -diff if diff < 0
+        if diff > .01
             @_materialLight.opacity = @_currentOpacity
             @_materialLight.needUpdate = true
 

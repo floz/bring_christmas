@@ -60,9 +60,9 @@ body {
     position: absolute;
     top: 10%;
     left: 50%;
-    margin-left: -400px;
-    width: 800px;
-    height: 436px;
+    margin-left: -360px;
+    width: 720px;
+    // height: 436px;
     opacity: 1;
 
     &.invisible {
@@ -76,7 +76,7 @@ body {
     color: #fff;
     text-align: center;
     position: relative;
-    margin-top: 20px;
+    margin-top: 10px;
     font-size: 18px;
     opacity: 1;
 

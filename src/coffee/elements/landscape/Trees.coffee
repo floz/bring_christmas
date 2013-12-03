@@ -30,12 +30,13 @@ class Trees extends THREE.Object3D
         updateManager.register @
 
     updateWinter: ->
-        @_toOpacity = winterManager.percent        
+        @_toOpacity = winterManager.percent
 
     update: ->
         @_currentOpacity += ( @_toOpacity - @_currentOpacity ) * .1
         diff = @_currentOpacity - @_materialSnow.opacity
-        if diff > .1
+        diff = -diff if diff < 0
+        if diff > .01
             @_materialSnow.opacity = @_currentOpacity
             @_materialSnow.needUpdate = true
 

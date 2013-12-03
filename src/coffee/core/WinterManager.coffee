@@ -56,7 +56,7 @@ class WinterManagerSingleton
             for listener in @_listenersWinter
                 listener.onWinter()
 
-            setTimeout @_notifySummer, 22000
+            setTimeout @_notifySummer, 20000
             return
 
         _notifySummer: =>

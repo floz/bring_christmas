@@ -91,7 +91,9 @@ class SoundsSingleton
 
         updateWinter: ->
             @_soundWinter.volume winterManager.percent * 2
-            @_soundNormal.volume 1 - winterManager.percent * 2
+            pMusiqueNormal = 1 - winterManager.percent * 2
+            pMusiqueNormal = 0 if pMusiqueNormal < 0
+            @_soundNormal.volume pMusiqueNormal
 
         setSoundWind: ( value ) ->
             @_toSoundWind = ( 1 - value ) * .5

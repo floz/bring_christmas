@@ -888,8 +888,6 @@ Land = (function(_super) {
     this.add(this._grass);
     this._floor = new Floor(w, h);
     this.add(this._floor);
-    this._snow = new Snow(isHighDef);
-    this.add(this._snow);
     sky = new Sky();
     sky.position.z = -Size.h >> 1;
     sky.position.y = 350;
@@ -898,6 +896,8 @@ Land = (function(_super) {
     treesRight.position.y = 200;
     treesRight.position.z = -Size.h * .5 + 2 >> 0;
     this.add(treesRight);
+    this._snow = new Snow(isHighDef);
+    this.add(this._snow);
     this.position.z = -500;
     updateManager.register(this);
   }
@@ -925,7 +925,7 @@ Sky = (function(_super) {
 
   Sky.prototype._geometry = null;
 
-  Sky.prototype._toOpacity = 0;
+  Sky.prototype._toOpacity = 1;
 
   Sky.prototype._currentOpacity = 0;
 
@@ -947,6 +947,7 @@ Sky = (function(_super) {
     meshLight = new THREE.Mesh(this._geometry, this._materialLight);
     this.add(meshLight);
     winterManager.register(this);
+    updateManager.register(this);
   }
 
   Sky.prototype.updateWinter = function() {
@@ -957,7 +958,10 @@ Sky = (function(_super) {
     var diff;
     this._currentOpacity += (this._toOpacity - this._currentOpacity) * .1;
     diff = this._currentOpacity - this._materialLight.opacity;
-    if (diff > .1) {
+    if (diff < 0) {
+      diff = -diff;
+    }
+    if (diff > .01) {
       this._materialLight.opacity = this._currentOpacity;
       return this._materialLight.needUpdate = true;
     }
@@ -1009,7 +1013,10 @@ Trees = (function(_super) {
     var diff;
     this._currentOpacity += (this._toOpacity - this._currentOpacity) * .1;
     diff = this._currentOpacity - this._materialSnow.opacity;
-    if (diff > .1) {
+    if (diff < 0) {
+      diff = -diff;
+    }
+    if (diff > .01) {
       this._materialSnow.opacity = this._currentOpacity;
       return this._materialSnow.needUpdate = true;
     }
@@ -1234,8 +1241,13 @@ SoundsSingleton = (function() {
     };
 
     SoundsInstance.prototype.updateWinter = function() {
+      var pMusiqueNormal;
       this._soundWinter.volume(winterManager.percent * 2);
-      return this._soundNormal.volume(1 - winterManager.percent * 2);
+      pMusiqueNormal = 1 - winterManager.percent * 2;
+      if (pMusiqueNormal < 0) {
+        pMusiqueNormal = 0;
+      }
+      return this._soundNormal.volume(pMusiqueNormal);
     };
 
     SoundsInstance.prototype.setSoundWind = function(value) {
@@ -2175,7 +2187,7 @@ WinterManagerSingleton = (function() {
         listener = _ref[_i];
         listener.onWinter();
       }
-      setTimeout(this._notifySummer, 22000);
+      setTimeout(this._notifySummer, 20000);
     };
 
     WinterManagerInstance.prototype._notifySummer = function() {

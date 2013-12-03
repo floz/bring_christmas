@@ -17,9 +17,6 @@ class Land extends THREE.Object3D
         @_floor = new Floor w, h
         @.add @_floor
 
-        @_snow = new Snow isHighDef
-        @.add @_snow
-
         sky = new Sky()
         sky.position.z = -Size.h >> 1
         sky.position.y = 350
@@ -29,6 +26,9 @@ class Land extends THREE.Object3D
         treesRight.position.y = 200
         treesRight.position.z = -Size.h * .5 + 2 >> 0
         @.add treesRight
+
+        @_snow = new Snow isHighDef
+        @.add @_snow
 
         @.position.z = -500
 

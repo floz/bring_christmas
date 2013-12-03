@@ -69,9 +69,8 @@ body {
   position: absolute;
   top: 10%;
   left: 50%;
-  margin-left: -400px;
-  width: 800px;
-  height: 436px;
+  margin-left: -360px;
+  width: 720px;
   opacity: 1;
 }
 /* line 68, ../../src/sass/main.scss */
@@ -92,7 +91,7 @@ body {
   color: #fff;
   text-align: center;
   position: relative;
-  margin-top: 20px;
+  margin-top: 10px;
   font-size: 18px;
   opacity: 1;
 }
