@@ -32,7 +32,6 @@ class WinterManagerSingleton
             percent *= 2
             percent = 1 if percent > 1
             return if percent == @percent
-            console.log percent
 
             if @percent < .1 && percent >= .1
                 @_notifyGap .15

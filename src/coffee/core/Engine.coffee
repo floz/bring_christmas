@@ -57,7 +57,7 @@ class EngineSingleton
             effectVignette = new THREE.ShaderPass THREE.VignetteShader
             effectVignette.uniforms.offset.value = 1.0;
             effectVignette.uniforms.darkness.value = 1.05;
-            # @_composer.addPass effectVignette
+            @_composer.addPass effectVignette
 
             effectCopy = new THREE.ShaderPass THREE.CopyShader
             effectCopy.renderToScreen = true
@@ -65,7 +65,6 @@ class EngineSingleton
 
         update: ->
             if @_composer
-                console.log "composer"
                 @_composer.render()
             else
                 @renderer.render @scene, @camera

@@ -1,6 +1,8 @@
 class Trees extends THREE.Object3D
 
     _materialSnow: null
+    _toOpacity: 0
+    _currentOpacity: 0
 
     constructor: ->
         THREE.Object3D.call @
@@ -25,8 +27,15 @@ class Trees extends THREE.Object3D
         # material.blending = "NoBlending"
 
         winterManager.register @
+        updateManager.register @
 
     updateWinter: ->
-        @_materialSnow.opacity = winterManager.percent
-        @_materialSnow.needUpdate = true
+        @_toOpacity = winterManager.percent        
+
+    update: ->
+        @_currentOpacity += ( @_toOpacity - @_currentOpacity ) * .1
+        diff = @_currentOpacity - @_materialSnow.opacity
+        if diff > .1
+            @_materialSnow.opacity = @_currentOpacity
+            @_materialSnow.needUpdate = true
 

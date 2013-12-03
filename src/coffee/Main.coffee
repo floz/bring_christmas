@@ -86,13 +86,13 @@ class LoadingScreen
 class Main
 
     constructor: ( isHighDef )->
-        engine.init document.getElementById "scene", isHighDef
+        engine.init document.getElementById( "scene" ), isHighDef
         # engine.scene.add new Axis 1000
 
         Colors.summer = new ColorData document.getElementById "color-summer"
         Colors.winter = new ColorData document.getElementById "color-winter"
 
-        world = new World()
+        world = new World isHighDef
         engine.scene.add world
 
         sounds.init()

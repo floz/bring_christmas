@@ -878,7 +878,7 @@ Land = (function(_super) {
 
   Land.prototype._snow = null;
 
-  function Land() {
+  function Land(isHighDef) {
     var h, sky, treesRight, w;
     THREE.Object3D.call(this);
     w = Size.w;
@@ -888,7 +888,7 @@ Land = (function(_super) {
     this.add(this._grass);
     this._floor = new Floor(w, h);
     this.add(this._floor);
-    this._snow = new Snow();
+    this._snow = new Snow(isHighDef);
     this.add(this._snow);
     sky = new Sky();
     sky.position.z = -Size.h >> 1;
@@ -925,6 +925,10 @@ Sky = (function(_super) {
 
   Sky.prototype._geometry = null;
 
+  Sky.prototype._toOpacity = 0;
+
+  Sky.prototype._currentOpacity = 0;
+
   function Sky() {
     var meshBg, meshLight, textureBg, textureLight;
     THREE.Object3D.call(this);
@@ -946,8 +950,17 @@ Sky = (function(_super) {
   }
 
   Sky.prototype.updateWinter = function() {
-    this._materialLight.opacity = 1 - winterManager.percent;
-    return this._materialLight.needUpdate = true;
+    return this._toOpacity = 1 - winterManager.percent;
+  };
+
+  Sky.prototype.update = function() {
+    var diff;
+    this._currentOpacity += (this._toOpacity - this._currentOpacity) * .1;
+    diff = this._currentOpacity - this._materialLight.opacity;
+    if (diff > .1) {
+      this._materialLight.opacity = this._currentOpacity;
+      return this._materialLight.needUpdate = true;
+    }
   };
 
   return Sky;
@@ -962,6 +975,10 @@ Trees = (function(_super) {
   __extends(Trees, _super);
 
   Trees.prototype._materialSnow = null;
+
+  Trees.prototype._toOpacity = 0;
+
+  Trees.prototype._currentOpacity = 0;
 
   function Trees() {
     var geometry, materialBg, textureBg, textureSnow;
@@ -981,11 +998,21 @@ Trees = (function(_super) {
     this.add(new THREE.Mesh(geometry, materialBg));
     this.add(new THREE.Mesh(geometry, this._materialSnow));
     winterManager.register(this);
+    updateManager.register(this);
   }
 
   Trees.prototype.updateWinter = function() {
-    this._materialSnow.opacity = winterManager.percent;
-    return this._materialSnow.needUpdate = true;
+    return this._toOpacity = winterManager.percent;
+  };
+
+  Trees.prototype.update = function() {
+    var diff;
+    this._currentOpacity += (this._toOpacity - this._currentOpacity) * .1;
+    diff = this._currentOpacity - this._materialSnow.opacity;
+    if (diff > .1) {
+      this._materialSnow.opacity = this._currentOpacity;
+      return this._materialSnow.needUpdate = true;
+    }
   };
 
   return Trees;
@@ -1001,6 +1028,8 @@ Snow = (function(_super) {
 
   Snow.countFlakes = 800;
 
+  Snow.prototype._countFlakes = 0;
+
   Snow.prototype._sizes = null;
 
   Snow.prototype._times = null;
@@ -1015,11 +1044,16 @@ Snow = (function(_super) {
 
   Snow.prototype._oldTime = 0.0;
 
-  function Snow() {
+  function Snow(isHighDef) {
     var geometry, i, particles, vec, vertice, _i, _j, _len, _ref, _ref1;
+    if (isHighDef) {
+      this._countFlakes = Snow.countFlakes * 2;
+    } else {
+      this._countFlakes = Snow.countFlakes;
+    }
     THREE.Object3D.call(this);
     geometry = new THREE.Geometry;
-    for (i = _i = 0, _ref = Snow.countFlakes; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = _i = 0, _ref = this._countFlakes; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       vec = new THREE.Vector3(Math.random() * 600, 500, Math.random() * Size.h * 2);
       geometry.vertices.push(vec);
     }
@@ -1054,7 +1088,7 @@ Snow = (function(_super) {
     this._uniforms = shader.uniforms;
     texture = THREE.ImageUtils.loadTexture("img/snowflake.png");
     this._uniforms.texture.value = texture;
-    this._uniforms.idxVisible.value = Snow.countFlakes;
+    this._uniforms.idxVisible.value = this._countFlakes;
     params = {
       attributes: this._attributes,
       uniforms: this._uniforms,
@@ -1079,7 +1113,7 @@ Snow = (function(_super) {
   };
 
   Snow.prototype.updateWinter = function() {
-    return this._uniforms.idxVisible.value = Snow.countFlakes - Snow.countFlakes * winterManager.percent * 2;
+    return this._uniforms.idxVisible.value = this._countFlakes - this._countFlakes * winterManager.percent * 2;
   };
 
   return Snow;
@@ -1233,13 +1267,16 @@ World = (function(_super) {
 
   World.prototype._land = null;
 
-  function World() {
+  World.prototype._isHighDef = false;
+
+  function World(_isHighDef) {
+    this._isHighDef = _isHighDef;
     THREE.Object3D.call(this);
     this._init();
   }
 
   World.prototype._init = function() {
-    this._land = new Land();
+    this._land = new Land(this._isHighDef);
     this.add(this._land);
     return sounds.startWind();
   };
@@ -1851,6 +1888,7 @@ EngineSingleton = (function() {
       effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
       effectVignette.uniforms.offset.value = 1.0;
       effectVignette.uniforms.darkness.value = 1.05;
+      this._composer.addPass(effectVignette);
       effectCopy = new THREE.ShaderPass(THREE.CopyShader);
       effectCopy.renderToScreen = true;
       return this._composer.addPass(effectCopy);
@@ -1858,7 +1896,6 @@ EngineSingleton = (function() {
 
     EngineInstance.prototype.update = function() {
       if (this._composer) {
-        console.log("composer");
         return this._composer.render();
       } else {
         return this.renderer.render(this.scene, this.camera);
@@ -2096,7 +2133,6 @@ WinterManagerSingleton = (function() {
       if (percent === this.percent) {
         return;
       }
-      console.log(percent);
       if (this.percent < .1 && percent >= .1) {
         this._notifyGap(.15);
       }
@@ -2295,10 +2331,10 @@ LoadingScreen = (function() {
 Main = (function() {
   function Main(isHighDef) {
     var world;
-    engine.init(document.getElementById("scene", isHighDef));
+    engine.init(document.getElementById("scene"), isHighDef);
     Colors.summer = new ColorData(document.getElementById("color-summer"));
     Colors.winter = new ColorData(document.getElementById("color-winter"));
-    world = new World();
+    world = new World(isHighDef);
     engine.scene.add(world);
     sounds.init();
     updateManager.start();

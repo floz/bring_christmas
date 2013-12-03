@@ -4,7 +4,7 @@ class Land extends THREE.Object3D
     _floor: null
     _snow: null
 
-    constructor: ->
+    constructor: ( isHighDef ) ->
         THREE.Object3D.call @
 
         w = Size.w
@@ -17,7 +17,7 @@ class Land extends THREE.Object3D
         @_floor = new Floor w, h
         @.add @_floor
 
-        @_snow = new Snow()
+        @_snow = new Snow isHighDef
         @.add @_snow
 
         sky = new Sky()
